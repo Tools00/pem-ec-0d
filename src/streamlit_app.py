@@ -198,7 +198,7 @@ with tab_pol:
         template="plotly_dark", height=500,
         legend=dict(orientation="h", y=1.02, x=1, xanchor="right"),
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown("**Voltage decomposition @ operating point**")
     decomp = pd.DataFrame({
@@ -208,7 +208,7 @@ with tab_pol:
                       v["eta_ohm"], v["eta_conc"], v["u_cell"]],
     })
     st.dataframe(decomp.style.format({"Value [V]": "{:.4f}"}),
-                 use_container_width=True, hide_index=True)
+                 width="stretch", hide_index=True)
 
 # ===================== TAB 2: Stack Analysis ===================== #
 with tab_stack:
@@ -226,7 +226,7 @@ with tab_stack:
         yaxis_title="Stack voltage [V]",
         template="plotly_dark", height=400,
     )
-    st.plotly_chart(fig_s, use_container_width=True)
+    st.plotly_chart(fig_s, width="stretch")
 
     st.markdown("### Stack power curve")
     fig_p = go.Figure()
@@ -239,7 +239,7 @@ with tab_stack:
         yaxis_title="Stack electrical power [kW]",
         template="plotly_dark", height=400,
     )
-    st.plotly_chart(fig_p, use_container_width=True)
+    st.plotly_chart(fig_p, width="stretch")
 
     st.markdown("### Stack summary @ operating point")
     stack_df = pd.DataFrame({
@@ -264,7 +264,7 @@ with tab_stack:
             f"{stack_h2['v_dot_nm3_per_h']:.3f}",
         ],
     })
-    st.dataframe(stack_df, use_container_width=True, hide_index=True)
+    st.dataframe(stack_df, width="stretch", hide_index=True)
 
 # ===================== TAB 3: Thermal ===================== #
 with tab_thermal:
@@ -303,7 +303,7 @@ with tab_thermal:
         yaxis_title="Waste heat [kW]",
         template="plotly_dark", height=400,
     )
-    st.plotly_chart(fig_q, use_container_width=True)
+    st.plotly_chart(fig_q, width="stretch")
 
     st.caption(
         "Thermoneutral voltage E_tn = ΔH / (n·F) ≈ 1.481 V at 298.15 K (HHV basis). "
@@ -334,7 +334,7 @@ with tab_mat:
             membrane.ref, cat_anode.ref, cat_cathode.ref, gdl_a.ref, gdl_c.ref,
         ],
     })
-    st.dataframe(mat_df, use_container_width=True, hide_index=True)
+    st.dataframe(mat_df, width="stretch", hide_index=True)
 
     st.markdown("### Available presets")
     with st.expander("All membranes"):
@@ -347,7 +347,7 @@ with tab_mat:
              "Ref": m.ref}
             for m in MEMBRANES.values()
         ])
-        st.dataframe(mem_all, use_container_width=True, hide_index=True)
+        st.dataframe(mem_all, width="stretch", hide_index=True)
 
     with st.expander("All catalysts"):
         cat_all = pd.DataFrame([
@@ -355,7 +355,7 @@ with tab_mat:
              "α": c.alpha, "Loading [mg/cm²]": c.loading_mg_cm2, "Ref": c.ref}
             for c in list(CATALYSTS_ANODE.values()) + list(CATALYSTS_CATHODE.values())
         ])
-        st.dataframe(cat_all, use_container_width=True, hide_index=True)
+        st.dataframe(cat_all, width="stretch", hide_index=True)
 
 # ===================== TAB 5: Export ===================== #
 with tab_export:
