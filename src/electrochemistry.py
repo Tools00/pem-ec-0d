@@ -5,7 +5,7 @@ Cell voltage assembly:
     U_cell = E_rev + η_act,anode + η_act,cathode + η_ohm + η_conc
 
 - E_rev      Nernst equation, temperature- and pressure-corrected
-- η_act      Butler-Volmer / Tafel approximation, anode (OER) and cathode (HER)
+- η_act      Full Butler-Volmer (Newton-inverted), anode (OER) and cathode (HER)
 - η_ohm      Ohmic losses (membrane, GDL, contact, bipolar plate)
 - η_conc     Concentration (mass-transport) overpotential near limiting current
 
@@ -141,6 +141,88 @@ def arrhenius_exchange_current_density(
     )
 
 
+def butler_volmer_current_density(
+    eta: float,
+    j0: float,
+    alpha: float,
+    temperature_k: float,
+) -> float:
+    """
+    Full Butler-Volmer current density for a single electrode (anode OR cathode).
+
+        j(η) = j0 · [ exp(α·F·η / (R·T))  −  exp(−(1−α)·F·η / (R·T)) ]
+
+    The forward (anodic on this electrode) and reverse (cathodic) partial
+    currents are both included — no Tafel truncation. For η >> R·T/F the
+    reverse term vanishes and the expression reduces to the Tafel form
+    j = j0 · exp(α·F·η / R·T).
+
+    Args:
+        eta:           activation overpotential [V], positive driving forward reaction
+        j0:            exchange current density [A/m²]
+        alpha:         transfer coefficient (forward direction), α ∈ (0, 1).
+                       Reverse coefficient is taken as (1 − α), consistent with a
+                       single rate-determining electron transfer.
+        temperature_k: absolute temperature [K]
+
+    Returns:
+        Net current density j in A/m². Sign follows η.
+
+    @ref: Bard & Faulkner (2001), Electrochemical Methods, Eq. 3.3.11.
+          Carmo et al. (2013), Eq. (8) — for the asymmetric (α_a ≠ 1 − α_c) case
+          the caller is responsible for using appropriate α per side.
+    """
+    if j0 <= 0:
+        raise ValueError(f"j0 must be > 0, got {j0}")
+    if not (0.0 < alpha < 1.0):
+        raise ValueError(f"alpha must be in (0, 1), got {alpha}")
+    if temperature_k <= 0:
+        raise ValueError(f"temperature_k must be > 0, got {temperature_k}")
+
+    f_over_rt = F / (R * temperature_k)
+    return float(j0 * (np.exp(alpha * f_over_rt * eta) - np.exp(-(1.0 - alpha) * f_over_rt * eta)))
+
+
+def _solve_butler_volmer_for_eta(
+    j_target: float,
+    j0: float,
+    alpha: float,
+    temperature_k: float,
+    *,
+    max_iter: int = 50,
+    tol: float = 1e-10,
+) -> float:
+    """
+    Invert Butler-Volmer: find η such that BV(η) = j_target.
+
+    Newton-Raphson seeded with the Tafel estimate. BV is strictly monotonic in η
+    for j0 > 0 and α ∈ (0, 1), so convergence is guaranteed from any starting
+    point; quadratic convergence from the Tafel guess.
+
+    Internal helper — the public entry is `Electrochemistry.activation_overpotential`.
+    """
+    f_over_rt = F / (R * temperature_k)
+
+    # Tafel initial guess: η ≈ (R·T / (α·F)) · ln(j_target / j0).
+    # Clip ratio to avoid log of zero for j_target ≤ j0; cold-start at η = 0 in that case.
+    eta = np.log(j_target / j0) / (alpha * f_over_rt) if j_target > j0 else 0.0
+
+    for _ in range(max_iter):
+        fwd = np.exp(alpha * f_over_rt * eta)
+        rev = np.exp(-(1.0 - alpha) * f_over_rt * eta)
+        residual = j0 * (fwd - rev) - j_target
+        derivative = j0 * f_over_rt * (alpha * fwd + (1.0 - alpha) * rev)
+        step = residual / derivative
+        eta -= step
+        if abs(step) < tol:
+            return float(eta)
+
+    raise RuntimeError(
+        f"Butler-Volmer Newton failed to converge after {max_iter} iterations: "
+        f"|step|={abs(step):.3e}, j_target={j_target}, j0={j0}, α={alpha}"
+    )
+
+
 # -------------------- Data class -------------------- #
 
 
@@ -264,7 +346,7 @@ class Electrochemistry:
             + (R * self.temperature / (N_ELECTRONS_H2O * F)) * np.log(pressure_ratio)
         )
 
-    # -------------------- Butler-Volmer (Tafel) -------------------- #
+    # -------------------- Butler-Volmer -------------------- #
 
     def activation_overpotential(
         self,
@@ -272,21 +354,29 @@ class Electrochemistry:
         side: str = "anode",
     ) -> float:
         """
-        Tafel approximation of Butler-Volmer.
+        Full Butler-Volmer activation overpotential, solved numerically.
 
-            η_act = (R·T) / (α·F) · ln(j / j0)
+        Inverts
+            j = j0 · [ exp(α·F·η / R·T) − exp(−(1−α)·F·η / R·T) ]
+        for η via Newton-Raphson seeded with the Tafel estimate
+        η_Tafel = (R·T / α·F) · ln(j / j0).
 
-        Valid for j >> j0 (typically j/j0 > 10). For PEM electrolysis
-        operating currents (j > 1000 A/m²) this is well satisfied.
+        At high current (j >> j0) the reverse term is negligible and the
+        result matches Tafel to machine precision; near j ≈ j0 the reverse
+        term contributes a measurable correction (several mV on the cathode
+        at low loads). Numerical inversion is required — no closed form.
 
         Args:
             current_density_si: j in A/m² (SI)
             side: 'anode' (OER) or 'cathode' (HER)
 
         Returns:
-            η_act in V (positive — a loss)
+            η_act in V (positive — a loss).
 
-        @ref: Carmo et al. (2013), Eq. (8).
+        @ref: Bard & Faulkner (2001), Eq. 3.3.11; Carmo et al. (2013), Eq. (8).
+        @valid-range: j > 0; η ≳ 0. For j → 0⁺ the BV linear approximation
+                      η ≈ j·R·T / (j0·F) dominates — the Newton solver handles
+                      this regime smoothly.
         """
         if current_density_si <= 0:
             raise ValueError(f"current_density_si must be positive, got {current_density_si}")
@@ -298,7 +388,12 @@ class Electrochemistry:
         else:
             raise ValueError(f"side must be 'anode' or 'cathode', got {side!r}")
 
-        return (R * self.temperature) / (alpha * F) * np.log(current_density_si / j0)
+        return _solve_butler_volmer_for_eta(
+            j_target=current_density_si,
+            j0=j0,
+            alpha=alpha,
+            temperature_k=self.temperature,
+        )
 
     def tafel_slope(self, side: str = "anode") -> float:
         """

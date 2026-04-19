@@ -13,6 +13,7 @@ Pro relevante Architektur-Entscheidung eine Datei. Immer dieselbe Struktur:
 | [002](002-hybrid-vs-cfd.md) | Hybrid-Ansatz vs. Full-CFD (AVL Fire M & Co.) | Accepted | 2026-04-19 |
 | [003](003-springer-membrane-conductivity.md) | Springer-Modell für σ(λ, T) statt statischem Preset | Accepted | 2026-04-19 |
 | [004](004-arrhenius-exchange-current-density.md) | Arrhenius-Korrektur für j₀(T) | Accepted | 2026-04-20 |
+| [005](005-full-butler-volmer.md) | Full Butler-Volmer statt Tafel-Näherung | Accepted | 2026-04-20 |
 
 ## Regeln
 

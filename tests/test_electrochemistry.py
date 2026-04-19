@@ -18,6 +18,7 @@ from src.constants import DE0_DT, E0_H2O, T_STANDARD, F, R
 from src.electrochemistry import (
     Electrochemistry,
     arrhenius_exchange_current_density,
+    butler_volmer_current_density,
     springer_membrane_conductivity,
 )
 
@@ -311,3 +312,67 @@ def test_arrhenius_rejects_out_of_range_temperature():
 def test_arrhenius_rejects_out_of_range_reference_temperature():
     with pytest.raises(ValueError, match="reference_temperature_k"):
         arrhenius_exchange_current_density(10.0, 52_000.0, 353.15, reference_temperature_k=500.0)
+
+
+# ---------------- Full Butler-Volmer ---------------- #
+
+
+def test_butler_volmer_zero_overpotential_gives_zero_current():
+    """j(η=0) must equal zero — both exponentials collapse to 1, difference is 0."""
+    j = butler_volmer_current_density(eta=0.0, j0=10.0, alpha=0.5, temperature_k=353.15)
+    assert math.isclose(j, 0.0, abs_tol=1e-12)
+
+
+def test_butler_volmer_symmetric_for_alpha_half():
+    """For α = 0.5 the BV curve is antisymmetric: j(−η) = −j(η)."""
+    j_plus = butler_volmer_current_density(0.05, 10.0, 0.5, 353.15)
+    j_minus = butler_volmer_current_density(-0.05, 10.0, 0.5, 353.15)
+    assert math.isclose(j_plus, -j_minus, rel_tol=1e-12)
+
+
+def test_butler_volmer_reduces_to_tafel_at_high_overpotential():
+    """At η = 0.5 V (anode regime) reverse term < 1e-8× forward — BV ≈ Tafel."""
+    j0, alpha, T = 10.0, 0.5, 353.15
+    j_bv = butler_volmer_current_density(0.5, j0, alpha, T)
+    j_tafel = j0 * np.exp(alpha * F * 0.5 / (R * T))
+    rel_err = abs(j_bv - j_tafel) / j_tafel
+    assert rel_err < 1e-6, f"BV/Tafel disagree at high η: rel_err={rel_err:.3e}"
+
+
+def test_butler_volmer_roundtrip_via_activation_overpotential():
+    """
+    For any j > 0, solving BV for η and reinserting must recover j exactly.
+    Covers the full range from near-j0 to Tafel regime.
+    """
+    cell = Electrochemistry.from_engineering(temperature_celsius=80.0)
+    j_targets = np.logspace(np.log10(cell.j0_anode * 1.05), 4.5, 15)
+    for j_target in j_targets:
+        eta = cell.activation_overpotential(float(j_target), "anode")
+        j_back = butler_volmer_current_density(
+            eta, cell.j0_anode, cell.alpha_anode, cell.temperature
+        )
+        rel_err = abs(j_back - j_target) / j_target
+        assert rel_err < 1e-8, f"Roundtrip failed at j={j_target:.3e}: rel_err={rel_err:.3e}"
+
+
+def test_butler_volmer_gives_nonzero_eta_near_j0():
+    """
+    Near j ≈ j0 the Tafel log(1) = 0 — but BV must return a positive η because
+    the reverse-current contribution is non-negligible in this regime.
+    Expected order of magnitude: η ≈ R·T / (F · j0) · j ≈ few mV.
+    """
+    cell = Electrochemistry.from_engineering(temperature_celsius=80.0)
+    # Pick a j slightly above j0 where Tafel would give ~0 but BV gives a real answer
+    eta = cell.activation_overpotential(cell.j0_anode * 1.01, "anode")
+    assert 0 < eta < 0.05  # positive, under 50 mV
+
+
+def test_butler_volmer_input_validation():
+    with pytest.raises(ValueError, match="j0"):
+        butler_volmer_current_density(0.1, 0.0, 0.5, 353.15)
+    with pytest.raises(ValueError, match="alpha"):
+        butler_volmer_current_density(0.1, 10.0, 0.0, 353.15)
+    with pytest.raises(ValueError, match="alpha"):
+        butler_volmer_current_density(0.1, 10.0, 1.0, 353.15)
+    with pytest.raises(ValueError, match="temperature_k"):
+        butler_volmer_current_density(0.1, 10.0, 0.5, 0.0)
