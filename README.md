@@ -1,5 +1,10 @@
 # PEM-EC Designer
 
+[![CI](https://github.com/Tools00/pem-ec-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/Tools00/pem-ec-designer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://github.com/astral-sh/ruff)
+
 **Interactive PEM Electrolysis Cell & Stack Designer — running in your browser.**
 
 Physics-based simulation of proton-exchange-membrane water electrolysis cells and stacks,
