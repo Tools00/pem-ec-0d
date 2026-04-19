@@ -5,11 +5,40 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
-### Planned (v0.2)
-- Stack-Modul: N Zellen in Serie, Gesamtleistung, Stack-Wirkungsgrad
-- Membran-Presets (Nafion 212 / 115 / 117, Aquivion, PFSA)
+### Planned (v0.3)
 - Tafel-Plot (semi-log) in der UI zur Visualisierung der Validation
 - Effizienz-Kurve η_energy(j) neben Polarisationskurve
+- Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
+- 2. Validation gegen experimentelle Paper-Kurve
+
+## [0.2.0] — 2026-04-19
+
+### Added
+- **Stack-Modul** (`src/stack.py`) — N identische Zellen in Serie,
+  aggregiert U_stack, P_electric, H2-Produktion, Polarisationskurve
+- **Materials-Modul** (`src/materials.py`) — Hardcoded Presets mit Refs:
+  - 6 Membranen (Nafion 211/212/115/117, Aquivion E98, Fumapem F-950)
+  - 3 Anoden-Katalysatoren (IrO2, IrRuOx, IrO2-TiO2)
+  - 3 Kathoden-Katalysatoren (Pt/C, Pt black, PtCo/C)
+  - 2+2 GDLs (Ti felt/mesh, Carbon paper/cloth)
+- **Thermal-0D-Modul** (`src/thermal.py`) — Stationäre Energiebilanz,
+  Wärmegenerierung Q = (U − E_tn·η_F)·I, Kühlmittel-Massenstrom
+  aus ṁ·cp·ΔT, thermische Effizienz (HHV-Basis)
+- **UI-Neustruktur** — 5 Tabs: Polarization · Stack Analysis · Thermal ·
+  Materials · Export
+- **Stack-Level-KPIs** im Hero-Bereich (U_stack, P_kW, H2 g/h, Q_waste)
+- **Material-Dropdowns** statt Slider — Presets für sofortige Verwendung
+- **Operating-Point-Summary-Export** (CSV mit allen Kenngrößen)
+- **26 neue Tests** (total 78), alle grün:
+  - Stack: 8 Tests (Linearität, Skalierung, Monotonie)
+  - Materials: 9 Tests (Konsistenz, Ordnung Nafion, Valid Ranges)
+  - Thermal: 9 Tests (E_tn-Sanity, Exo/Endotherm, Heat-Balance)
+
+### Changed
+- Streamlit-App-Imports umgestellt (absolut statt relativ) für korrekten
+  Script-Run ohne Paket-Kontext
+
+### Planned (v0.5)
 
 ### Planned (v0.5)
 - 0D-Thermal-Bilanz (stationär)
