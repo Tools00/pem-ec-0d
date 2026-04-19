@@ -5,11 +5,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
-### Planned (v0.3)
+### Planned (next)
 - Tafel-Plot (semi-log) in der UI zur Visualisierung der Validation
 - Effizienz-Kurve η_energy(j) neben Polarisationskurve
 - Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
 - 2. Validation gegen experimentelle Paper-Kurve
+
+## [0.3.0] — 2026-04-20
+
+### Added
+- **Springer-Membran-Leitfähigkeit σ(λ, T)** (`src/electrochemistry.py`):
+  - `springer_membrane_conductivity(lambda_h2o, temperature_k)`
+  - Dynamisch statt statischem Preset — η_ohm nun T- und Hydration-korrekt
+  - UI: Hydrations-Slider λ/λ_max ∈ [0.30, 1.00]
+  - Siehe [ADR 003](docs/adr/003-springer-membrane-conductivity.md)
+- **Arrhenius-Korrektur für Austauschstromdichte j₀(T)** (`src/electrochemistry.py`):
+  - `arrhenius_exchange_current_density(j0_ref, E_a, T, T_ref=353.15)`
+  - `CatalystSpec.activation_energy_j_mol` neu (Pflichtfeld, kein Default)
+  - Alle 6 Katalysator-Presets mit Literatur-E_a aktualisiert
+    (IrO₂ 52, IrRuOx 48, IrO₂-TiO₂ 56, Pt/C 25, Pt black 20, PtCo 22 kJ/mol)
+  - UI zeigt effektives j₀(T) in der Sidebar
+  - Siehe [ADR 004](docs/adr/004-arrhenius-exchange-current-density.md)
+- **Full Butler-Volmer** (`src/electrochemistry.py`):
+  - `butler_volmer_current_density(eta, j0, alpha, T)` — Vorwärts-BV
+  - Newton-Raphson-Löser invertiert BV für η(j), initialisiert mit Tafel-Schätzung
+  - `activation_overpotential()` nutzt jetzt den Löser statt Tafel-Formel
+  - Bei j ≈ j0 physikalisch korrekt; Tafel-Grenzfall exakt erhalten
+  - Siehe [ADR 005](docs/adr/005-full-butler-volmer.md)
+- **20 neue Tests** (total 98, alle grün):
+  - Springer: 6 (Referenzwert, Monotonie T/λ, Guards, realistischer Nafion)
+  - Arrhenius: 8 (Identität, Monotonie, IrO₂-Drop, HER vs OER, 4× Guards)
+  - Butler-Volmer: 6 (j(0)=0, Antisymmetrie, Tafel-Limes, Roundtrip, Nahe-j₀, Guards)
+
+### Changed
+- `MembraneSpec.conductivity_sm` wird nicht mehr in Berechnung verwendet —
+  bleibt als Informationsfeld (Preset bei 80 °C, voll hydratisiert)
+- Gültigkeitsbereich Temperatur erweitert: 30–90 °C (vorher: 50–90 °C)
+- Gültigkeitsbereich Stromdichte erweitert: 0.01–2.5 A/cm² (vorher: 0.1–2.5)
+
+### References
+- Springer, Zawodzinski & Gottesfeld (1991) — J. Electrochem. Soc. 138(8), Eq. 23
+- Suermann, Bensmann & Hanke-Rauschenbach (2017) — J. Power Sources 365
+- Durst, Siebel, Simon et al. (2014) — Energy Environ. Sci. 7
+- Bard & Faulkner (2001) — Electrochemical Methods, Eq. 3.3.11
+- Carmo, Fritz, Mergel & Stolten (2013) — Int. J. Hydrogen Energy 38(12), Eqs. 8–9
 
 ## [0.2.0] — 2026-04-19
 
@@ -39,15 +78,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   Script-Run ohne Paket-Kontext
 
 ### Planned (v0.5)
-
-### Planned (v0.5)
-- 0D-Thermal-Bilanz (stationär)
 - Material-Datenbank (SQLite)
 - Parameter-Sweeps mit Heatmap-Visualisierung
 - Kosten-Schätzer (CAPEX/OPEX, €/kg H2)
 - Validation gegen experimentelle Paper-Kurve (#2)
-- CI/CD via GitHub Actions (pytest + ruff)
-- `pyproject.toml` + `uv` statt `requirements.txt`
 
 ### Planned (v1.0)
 - 1D-Membran-PDE (Springer-Modell + Wasser-Transport)
@@ -92,5 +126,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Keine Multi-phase Flow
 - Nur 1 Validation-Datensatz (analytisch, noch nicht gegen Experiment)
 
-[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Tools00/pem-ec-designer/releases/tag/v0.1.0
