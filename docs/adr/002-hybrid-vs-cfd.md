@@ -1,14 +1,28 @@
-# ADR 002 — Hybrid-Ansatz vs. Full-CFD (AVL Fire M & Co.)
+# ADR 002 — Hybrid-Ansatz vs. Full-CFD
 
 **Status:** Accepted — Strategie-Entscheidung für v0.5+
-**Date:** 2026-04-19
-**Context:** User-Frage: "Können wir mit Open-Source-Python-Stack nahezu ähnliche Ergebnisse wie AVL Fire M erzielen?"
+**Date:** 2026-04-19, Erweitert 2026-04-19 (broader reference set)
+**Context:** User-Frage: "Können wir mit Open-Source-Python-Stack nahezu ähnliche Ergebnisse wie kommerzielle CFD-Tools (ANSYS Fluent, COMSOL, Siemens STAR-CCM+, AVL Fire M) erzielen?"
 
 ## Kurzantwort
 
 **Teilweise ja. Je nach Use Case zwischen 70–98 % der CFD-Genauigkeit bei 1000x weniger Rechenzeit — aber mit klaren Grenzen.**
 
-## Was AVL Fire M / COMSOL / ANSYS Fluent machen
+## Vergleichsreferenzen — kommerzielle CFD-Tools für PEM
+
+| Tool | Hersteller | Lizenz/Jahr | Stärken im PEM-Kontext |
+|---|---|---|---|
+| **ANSYS Fluent** | Ansys | €30–60k | Marktführer, Fuel-Cell-Addon, breite Usergroup |
+| **COMSOL Multiphysics** | COMSOL AB | €15–40k | Dediziertes Electrochemistry-Modul, academic-friendly |
+| **Siemens STAR-CCM+** | Siemens | €40–70k | Multi-physics Kopplung, Automotive-verbreitet |
+| **AVL Fire M** | AVL | €20–50k | Automotive/Brennstoffzellen-spezialisiert |
+| **Convergent Science Converge** | CSI | €30–60k | Auto-meshing, transient starke Domäne |
+| **Altair AcuSolve** | Altair | €20–40k | GPU-Beschleunigung |
+| **OpenFOAM** | OpenFOAM Foundation | 0 € | Open Source, anpassbar, keine GUI |
+
+**Gemeinsamkeit:** Alle lösen 3D-Strömung + Species-Transport + Electrochemistry + Energie mit FVM/FEM auf feinem Mesh. Wir wollen **nicht mit denen konkurrieren**, sondern sie für Early-Stage-Design ersetzen.
+
+## Was ANSYS Fluent / COMSOL / STAR-CCM+ / AVL Fire M machen
 
 Industrielle CFD-Tools lösen:
 
@@ -130,7 +144,7 @@ U_cell(j, T, p, Material, Geometrie) =
 
 **Zielmarke: 90–95 % der CFD-Genauigkeit für Cell-/Stack-Performance bei 10.000x weniger Kosten und 100.000x mehr Speed.**
 
-Das ist realistisch, hat Präzedenzfälle in der Literatur (Marangio, García-Valverde, Abdin), und ist die richtige Positionierung für ein Open-Source-Tool, das AVL Fire M **ergänzt** (für Early-Stage-Design), nicht **ersetzt** (für Detailed Design).
+Das ist realistisch, hat Präzedenzfälle in der Literatur (Marangio, García-Valverde, Abdin), und ist die richtige Positionierung für ein Open-Source-Tool, das **kommerzielle CFD (Fluent, COMSOL, STAR-CCM+, AVL Fire M) ergänzt** für Early-Stage-Design — nicht ersetzt für Detailed Design oder Zertifizierung.
 
 **Gegen CFD antreten wollen wir nicht — CFD für schnelles Screening ersetzen schon.**
 
