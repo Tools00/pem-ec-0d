@@ -308,6 +308,69 @@ with tab_pol:
     )
     st.dataframe(decomp.style.format({"Value [V]": "{:.4f}"}), width="stretch", hide_index=True)
 
+    st.markdown("---")
+    st.markdown("### Tafel plot — η_act vs. log₁₀(j)")
+    st.caption(
+        "Full Butler-Volmer solid; analytical Tafel line (slope b = 2.303·R·T/(α·F)) "
+        "dashed. Overlap at high j confirms BV → Tafel limit (ADR 005)."
+    )
+
+    # BV-computed η_act for each electrode, plus the analytical Tafel asymptote.
+    eta_a_curve = np.array([cell.activation_overpotential(j, "anode") for j in j_range_si])
+    eta_c_curve = np.array([cell.activation_overpotential(j, "cathode") for j in j_range_si])
+
+    b_anode = cell.tafel_slope("anode")
+    b_cathode = cell.tafel_slope("cathode")
+    log10_j_cm2 = np.log10(j_range_a_cm2)
+    # Tafel line η = b · (log10(j) − log10(j0))  —  j0 in A/cm²
+    j0_anode_cm2 = cell.j0_anode / 1e4
+    j0_cathode_cm2 = cell.j0_cathode / 1e4
+    tafel_anode = b_anode * (log10_j_cm2 - np.log10(j0_anode_cm2))
+    tafel_cathode = b_cathode * (log10_j_cm2 - np.log10(j0_cathode_cm2))
+
+    fig_tafel = go.Figure()
+    fig_tafel.add_trace(
+        go.Scatter(
+            x=j_range_a_cm2,
+            y=eta_a_curve,
+            name="η_act,anode (full BV)",
+            line=dict(color="#fbbf24", width=3),
+        )
+    )
+    fig_tafel.add_trace(
+        go.Scatter(
+            x=j_range_a_cm2,
+            y=tafel_anode,
+            name=f"Tafel anode, b={b_anode * 1000:.1f} mV/dec",
+            line=dict(color="#fbbf24", width=1, dash="dash"),
+        )
+    )
+    fig_tafel.add_trace(
+        go.Scatter(
+            x=j_range_a_cm2,
+            y=eta_c_curve,
+            name="η_act,cathode (full BV)",
+            line=dict(color="#c084fc", width=3),
+        )
+    )
+    fig_tafel.add_trace(
+        go.Scatter(
+            x=j_range_a_cm2,
+            y=tafel_cathode,
+            name=f"Tafel cathode, b={b_cathode * 1000:.1f} mV/dec",
+            line=dict(color="#c084fc", width=1, dash="dash"),
+        )
+    )
+    fig_tafel.update_layout(
+        xaxis_title="Current density [A/cm²] (log scale)",
+        yaxis_title="Activation overpotential η_act [V]",
+        xaxis_type="log",
+        template="plotly_dark",
+        height=450,
+        legend=dict(orientation="h", y=1.02, x=1, xanchor="right"),
+    )
+    st.plotly_chart(fig_tafel, width="stretch")
+
 # ===================== TAB 2: Stack Analysis ===================== #
 with tab_stack:
     st.markdown("### Stack polarization curve")
