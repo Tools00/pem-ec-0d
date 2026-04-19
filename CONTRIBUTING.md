@@ -23,7 +23,7 @@ please read this before opening a PR.
 ## Dev setup
 
 ```bash
-git clone https://github.com/USER/pem-ec-designer.git
+git clone https://github.com/Tools00/pem-ec-designer.git
 cd pem-ec-designer
 python -m venv venv
 source venv/bin/activate

@@ -167,7 +167,7 @@ byte-identical outputs.
   title   = {{PEM-EC Designer: Physics-Based Simulation of PEM Water Electrolysis}},
   version = {0.2.0},
   year    = {2026},
-  url     = {https://github.com/USER/pem-ec-designer}
+  url     = {https://github.com/Tools00/pem-ec-designer}
 }
 ```
 

@@ -45,10 +45,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/USER/pem-ec-designer"
-Repository = "https://github.com/USER/pem-ec-designer"
-Issues = "https://github.com/USER/pem-ec-designer/issues"
-Changelog = "https://github.com/USER/pem-ec-designer/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Tools00/pem-ec-designer"
+Repository = "https://github.com/Tools00/pem-ec-designer"
+Issues = "https://github.com/Tools00/pem-ec-designer/issues"
+Changelog = "https://github.com/Tools00/pem-ec-designer/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]

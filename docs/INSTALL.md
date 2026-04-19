@@ -19,7 +19,7 @@ Detailed setup instructions for development and local use.
 
 ```bash
 # Clone
-git clone https://github.com/USER/pem-ec-designer.git
+git clone https://github.com/Tools00/pem-ec-designer.git
 cd pem-ec-designer
 
 # Virtual environment
@@ -46,7 +46,7 @@ pytest tests/ -v
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone
-git clone https://github.com/USER/pem-ec-designer.git
+git clone https://github.com/Tools00/pem-ec-designer.git
 cd pem-ec-designer
 
 # Create env and install from pyproject.toml

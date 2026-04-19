@@ -50,3 +50,7 @@ data/processed/
 secrets/
 *.pem
 *.key
+
+# Local AI operating manual — not for public repo
+CLAUDE.md
+.claude/

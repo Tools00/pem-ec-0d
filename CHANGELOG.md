@@ -92,5 +92,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Keine Multi-phase Flow
 - Nur 1 Validation-Datensatz (analytisch, noch nicht gegen Experiment)
 
-[Unreleased]: https://github.com/USER/pem-ec-designer/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/USER/pem-ec-designer/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Tools00/pem-ec-designer/releases/tag/v0.1.0

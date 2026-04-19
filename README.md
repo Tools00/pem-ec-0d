@@ -219,4 +219,13 @@ MIT — see [LICENSE](LICENSE).
 ## Author
 
 Abed Qadi — Simulation Engineer.
-Issues, questions, collaborations → [open an issue on GitHub](https://github.com/).
+Issues, questions, collaborations → [open an issue on GitHub](https://github.com/Tools00/pem-ec-designer/issues).
+
+---
+
+## Development note
+
+This project is developed with AI-assisted tooling (Claude Code).
+Physics, architecture, and scope decisions are human-reviewed; every
+equation carries a literature reference, and all results are validated
+against analytical checks and published data (see [MODEL_CARD.md](docs/MODEL_CARD.md)).
