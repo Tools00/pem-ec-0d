@@ -20,12 +20,16 @@ def test_pressure_roundtrip(value):
 @pytest.mark.parametrize("value", [-40.0, 0.0, 25.0, 100.0, 250.0])
 def test_temperature_roundtrip(value):
     assert math.isclose(U.kelvin_to_celsius(U.celsius_to_kelvin(value)), value, abs_tol=1e-12)
-    assert math.isclose(U.celsius_to_kelvin(U.kelvin_to_celsius(value + 273.15)), value + 273.15, abs_tol=1e-12)
+    assert math.isclose(
+        U.celsius_to_kelvin(U.kelvin_to_celsius(value + 273.15)), value + 273.15, abs_tol=1e-12
+    )
 
 
 @pytest.mark.parametrize("value", [1e-6, 1e-3, 0.1, 1.0, 5.0])
 def test_current_density_roundtrip(value):
-    assert math.isclose(U.a_per_m2_to_a_per_cm2(U.a_per_cm2_to_a_per_m2(value)), value, rel_tol=1e-12)
+    assert math.isclose(
+        U.a_per_m2_to_a_per_cm2(U.a_per_cm2_to_a_per_m2(value)), value, rel_tol=1e-12
+    )
 
 
 @pytest.mark.parametrize("value", [1e-3, 0.01, 0.05, 0.5, 1.0])

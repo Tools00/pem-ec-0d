@@ -17,6 +17,7 @@ def cell_80c():
 
 # ---------------- Konstruktor-Validation ---------------- #
 
+
 def test_stack_invalid_n_cells(cell_80c):
     with pytest.raises(ValueError):
         Stack(cell=cell_80c, n_cells=0)
@@ -28,6 +29,7 @@ def test_stack_invalid_area(cell_80c):
 
 
 # ---------------- Stack-Voltage additiv ---------------- #
+
 
 def test_stack_voltage_scales_linearly_with_n_cells(cell_80c):
     """U_stack = N · U_cell — exakt linear in N bei festem Strom."""
@@ -42,6 +44,7 @@ def test_stack_voltage_scales_linearly_with_n_cells(cell_80c):
 
 # ---------------- Stack-Current ---------------- #
 
+
 def test_stack_current_scales_with_area(cell_80c):
     """I = j · A — unabhängig von N, da Serienschaltung."""
     j_si = U.a_per_cm2_to_a_per_m2(1.0)
@@ -54,6 +57,7 @@ def test_stack_current_scales_with_area(cell_80c):
 
 
 # ---------------- Power ---------------- #
+
 
 def test_stack_power_electric_equals_u_times_i(cell_80c):
     """P_electric = U_stack · I."""
@@ -76,6 +80,7 @@ def test_stack_power_positive_at_realistic_operating_point(cell_80c):
 
 # ---------------- H2-Produktion ---------------- #
 
+
 def test_stack_h2_scales_with_n_cells(cell_80c):
     """H2-Produktion skaliert linear mit Zellanzahl."""
     j_si = U.a_per_cm2_to_a_per_m2(1.0)
@@ -89,6 +94,7 @@ def test_stack_h2_scales_with_n_cells(cell_80c):
 
 
 # ---------------- Polarisationskurve ---------------- #
+
 
 def test_stack_polarization_curve_monotonic(cell_80c):
     stack = Stack(cell=cell_80c, n_cells=10, active_area_si=U.cm2_to_m2(100.0))

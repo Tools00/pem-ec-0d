@@ -23,11 +23,9 @@ E_tn (thermoneutral voltage):
 """
 
 from dataclasses import dataclass
-from typing import Dict
 
-from .constants import DELTA_H_H2O, F, N_ELECTRONS_H2O
+from .constants import DELTA_H_H2O, N_ELECTRONS_H2O, F
 from .electrochemistry import Electrochemistry
-
 
 # Thermoneutral voltage at 25 °C, liquid water product (HHV-basis)
 # E_tn = ΔH_H2O / (n · F) = 285830 / (2 · 96485.33212)
@@ -51,8 +49,8 @@ class ThermalModel:
     cell: Electrochemistry
     n_cells: int = 1
     active_area_si: float = 0.01
-    coolant_cp: float = 4196.0      # J/(kg·K), Wasser @ 80 °C
-    coolant_dt_k: float = 5.0       # K
+    coolant_cp: float = 4196.0  # J/(kg·K), Wasser @ 80 °C
+    coolant_dt_k: float = 5.0  # K
 
     def __post_init__(self) -> None:
         if self.n_cells < 1:
@@ -77,7 +75,7 @@ class ThermalModel:
 
     # -------------------- Heat generation -------------------- #
 
-    def heat_generation(self, current_density_si: float) -> Dict[str, float]:
+    def heat_generation(self, current_density_si: float) -> dict[str, float]:
         """
         Abwärme-Leistung pro Zelle und für gesamten Stack.
 
@@ -109,7 +107,7 @@ class ThermalModel:
 
     # -------------------- Cooling requirement -------------------- #
 
-    def cooling_flow(self, current_density_si: float) -> Dict[str, float]:
+    def cooling_flow(self, current_density_si: float) -> dict[str, float]:
         """
         Erforderlicher Kühlmittel-Massenstrom für definierten ΔT.
 
@@ -134,7 +132,7 @@ class ThermalModel:
 
     # -------------------- Thermal efficiency -------------------- #
 
-    def thermal_efficiency(self, current_density_si: float) -> Dict[str, float]:
+    def thermal_efficiency(self, current_density_si: float) -> dict[str, float]:
         """
         Zusätzliche Thermal-Metriken.
 

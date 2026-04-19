@@ -1,20 +1,18 @@
 """Tests für src/materials.py — Preset-Konsistenz."""
 
-import pytest
-
 from src.materials import (
-    MEMBRANES,
     CATALYSTS_ANODE,
     CATALYSTS_CATHODE,
     GDL_ANODE,
     GDL_CATHODE,
-    membrane_names,
+    MEMBRANES,
     anode_catalyst_names,
     cathode_catalyst_names,
+    membrane_names,
 )
 
-
 # ---------------- Membran-Presets ---------------- #
+
 
 def test_membranes_have_positive_properties():
     for name, m in MEMBRANES.items():
@@ -42,6 +40,7 @@ def test_membrane_validity_range_sensible():
 
 # ---------------- Katalysator-Presets ---------------- #
 
+
 def test_anode_catalysts_have_lower_j0_than_cathode():
     """OER (Anode) ist langsamer als HER (Kathode) — j0_anode << j0_cathode."""
     for a in CATALYSTS_ANODE.values():
@@ -65,6 +64,7 @@ def test_catalyst_alpha_in_valid_range():
 
 # ---------------- GDL-Presets ---------------- #
 
+
 def test_gdl_resistances_realistic():
     """GDL-Widerstand typisch 1e-7 bis 1e-5 Ω·m²."""
     for gdl in list(GDL_ANODE.values()) + list(GDL_CATHODE.values()):
@@ -75,6 +75,7 @@ def test_gdl_resistances_realistic():
 
 
 # ---------------- Helper-Funktionen ---------------- #
+
 
 def test_name_helpers_return_nonempty_lists():
     assert len(membrane_names()) >= 4

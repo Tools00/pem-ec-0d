@@ -6,7 +6,7 @@ import pytest
 
 from src import units as U
 from src.electrochemistry import Electrochemistry
-from src.thermal import ThermalModel, E_TN_STANDARD
+from src.thermal import E_TN_STANDARD, ThermalModel
 
 
 @pytest.fixture
@@ -16,6 +16,7 @@ def cell_80c():
 
 # ---------------- Thermoneutral voltage sanity ---------------- #
 
+
 def test_thermoneutral_voltage_approx_1_481():
     """E_tn = ΔH / (n·F) ≈ 1.481 V bei 298.15 K, HHV."""
     assert 1.475 < E_TN_STANDARD < 1.488
@@ -23,6 +24,7 @@ def test_thermoneutral_voltage_approx_1_481():
 
 
 # ---------------- Konstruktor-Validation ---------------- #
+
 
 def test_thermal_invalid_n_cells(cell_80c):
     with pytest.raises(ValueError):
@@ -41,6 +43,7 @@ def test_thermal_invalid_dt(cell_80c):
 
 # ---------------- Exothermer Betrieb bei typischen Bedingungen ---------------- #
 
+
 def test_pem_ec_exothermic_at_typical_operation(cell_80c):
     """Bei 80 °C, 10 bar, 1 A/cm² → U_cell ~ 1.9 V > E_tn ~ 1.48 V → exotherm."""
     thermal = ThermalModel(cell=cell_80c, n_cells=1, active_area_si=U.cm2_to_m2(100.0))
@@ -51,6 +54,7 @@ def test_pem_ec_exothermic_at_typical_operation(cell_80c):
 
 
 # ---------------- Heat skaliert mit N ---------------- #
+
 
 def test_heat_scales_with_n_cells(cell_80c):
     area = U.cm2_to_m2(100.0)
@@ -64,11 +68,15 @@ def test_heat_scales_with_n_cells(cell_80c):
 
 # ---------------- Cooling-Flow ist konsistent mit Q ---------------- #
 
+
 def test_cooling_flow_matches_heat_balance(cell_80c):
     """ṁ · cp · ΔT muss Q_stack ergeben."""
     thermal = ThermalModel(
-        cell=cell_80c, n_cells=20, active_area_si=U.cm2_to_m2(100.0),
-        coolant_cp=4196.0, coolant_dt_k=5.0,
+        cell=cell_80c,
+        n_cells=20,
+        active_area_si=U.cm2_to_m2(100.0),
+        coolant_cp=4196.0,
+        coolant_dt_k=5.0,
     )
     j_si = U.a_per_cm2_to_a_per_m2(1.5)
     q = thermal.heat_generation(j_si)["q_stack_w"]
@@ -78,6 +86,7 @@ def test_cooling_flow_matches_heat_balance(cell_80c):
 
 
 # ---------------- Thermal efficiency ---------------- #
+
 
 def test_thermal_efficiency_less_than_one_in_operation(cell_80c):
     """η_thermal = E_tn / U_cell, muss < 1 bei U_cell > E_tn sein."""
@@ -90,10 +99,13 @@ def test_thermal_efficiency_less_than_one_in_operation(cell_80c):
 
 # ---------------- Cooling-Flow-Sanity ---------------- #
 
+
 def test_cooling_flow_realistic_for_5kw_stack(cell_80c):
     """20 Zellen @ 100 cm², 1 A/cm², ΔT=5K → Kühlmittelstrom wenige L/min."""
     thermal = ThermalModel(
-        cell=cell_80c, n_cells=20, active_area_si=U.cm2_to_m2(100.0),
+        cell=cell_80c,
+        n_cells=20,
+        active_area_si=U.cm2_to_m2(100.0),
         coolant_dt_k=5.0,
     )
     j_si = U.a_per_cm2_to_a_per_m2(1.0)

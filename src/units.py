@@ -6,10 +6,10 @@ call these functions. Round-trip through a converter MUST be identity
 (tested in tests/test_units.py).
 """
 
-from .constants import T_ZERO_CELSIUS, P_BAR
-
+from .constants import P_BAR, T_ZERO_CELSIUS
 
 # -------------------- Pressure -------------------- #
+
 
 def bar_to_pa(p_bar: float) -> float:
     """Convert pressure from bar to Pascal (SI)."""
@@ -23,6 +23,7 @@ def pa_to_bar(p_pa: float) -> float:
 
 # -------------------- Temperature -------------------- #
 
+
 def celsius_to_kelvin(t_celsius: float) -> float:
     """Convert temperature from Celsius to Kelvin (SI)."""
     return t_celsius + T_ZERO_CELSIUS
@@ -34,6 +35,7 @@ def kelvin_to_celsius(t_kelvin: float) -> float:
 
 
 # -------------------- Current density -------------------- #
+
 
 def a_per_cm2_to_a_per_m2(j_a_cm2: float) -> float:
     """Convert current density from A/cm² to A/m² (SI). 1 A/cm² = 10,000 A/m²."""
@@ -47,6 +49,7 @@ def a_per_m2_to_a_per_cm2(j_a_m2: float) -> float:
 
 # -------------------- Area-specific resistance -------------------- #
 
+
 def ohm_cm2_to_ohm_m2(r_ohm_cm2: float) -> float:
     """Convert area-specific resistance from Ω·cm² to Ω·m² (SI). 1 Ω·cm² = 1e-4 Ω·m²."""
     return r_ohm_cm2 * 1e-4
@@ -58,6 +61,7 @@ def ohm_m2_to_ohm_cm2(r_ohm_m2: float) -> float:
 
 
 # -------------------- Length -------------------- #
+
 
 def um_to_m(l_um: float) -> float:
     """Convert length from micrometers to meters (SI)."""
@@ -81,6 +85,7 @@ def m_to_cm(l_m: float) -> float:
 
 # -------------------- Area -------------------- #
 
+
 def cm2_to_m2(a_cm2: float) -> float:
     """Convert area from cm² to m² (SI). 1 cm² = 1e-4 m²."""
     return a_cm2 * 1e-4
@@ -92,6 +97,7 @@ def m2_to_cm2(a_m2: float) -> float:
 
 
 # -------------------- Specific energy -------------------- #
+
 
 def j_per_kg_to_kwh_per_kg(e_j_kg: float) -> float:
     """Convert specific energy from J/kg (SI) to kWh/kg. 1 kWh = 3.6e6 J."""

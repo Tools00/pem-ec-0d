@@ -27,18 +27,25 @@ or construct via `Electrochemistry.from_engineering()`.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 import numpy as np
 
-from .constants import (
-    R, F, DE0_DT, E0_H2O, T_STANDARD, P_STANDARD,
-    N_ELECTRONS_H2O, M_H2, DELTA_H_H2O, LHV_H2,
-)
 from . import units as U
-
+from .constants import (
+    DE0_DT,
+    DELTA_H_H2O,
+    E0_H2O,
+    LHV_H2,
+    M_H2,
+    N_ELECTRONS_H2O,
+    P_STANDARD,
+    T_STANDARD,
+    F,
+    R,
+)
 
 # -------------------- Data class -------------------- #
+
 
 @dataclass
 class Electrochemistry:
@@ -67,19 +74,19 @@ class Electrochemistry:
         r_bpp:                 [Ω·m²] — bipolar plate
     """
 
-    temperature: float = 353.15            # K, 80 °C
-    pressure: float = 10.0 * 1e5           # Pa, 10 bar
-    membrane_conductivity: float = 10.0    # S/m
-    membrane_thickness: float = 50e-6      # m, Nafion 212
-    j0_anode: float = 10.0                 # A/m², ≈ 1e-3 A/cm² (IrO2, OER)  — Carmo 2013 Tab. 4
-    j0_cathode: float = 1.0e3              # A/m², ≈ 1e-1 A/cm² (Pt, HER)    — Carmo 2013 Tab. 4
-    alpha_anode: float = 0.5               # dimensionless
+    temperature: float = 353.15  # K, 80 °C
+    pressure: float = 10.0 * 1e5  # Pa, 10 bar
+    membrane_conductivity: float = 10.0  # S/m
+    membrane_thickness: float = 50e-6  # m, Nafion 212
+    j0_anode: float = 10.0  # A/m², ≈ 1e-3 A/cm² (IrO2, OER)  — Carmo 2013 Tab. 4
+    j0_cathode: float = 1.0e3  # A/m², ≈ 1e-1 A/cm² (Pt, HER)    — Carmo 2013 Tab. 4
+    alpha_anode: float = 0.5  # dimensionless
     alpha_cathode: float = 0.5
-    r_contact: float = 5e-6                # Ω·m², ≈ 0.05 Ω·cm²
-    r_gdl_anode: float = 2e-6              # Ω·m², ≈ 0.02 Ω·cm² (Ti felt)
-    r_gdl_cathode: float = 1e-6            # Ω·m², ≈ 0.01 Ω·cm² (carbon paper)
-    r_bpp: float = 1e-7                    # Ω·m², ≈ 0.001 Ω·cm² (Ti)
-    faraday_efficiency: float = 0.98       # dimensionless
+    r_contact: float = 5e-6  # Ω·m², ≈ 0.05 Ω·cm²
+    r_gdl_anode: float = 2e-6  # Ω·m², ≈ 0.02 Ω·cm² (Ti felt)
+    r_gdl_cathode: float = 1e-6  # Ω·m², ≈ 0.01 Ω·cm² (carbon paper)
+    r_bpp: float = 1e-7  # Ω·m², ≈ 0.001 Ω·cm² (Ti)
+    faraday_efficiency: float = 0.98  # dimensionless
 
     # Computed on init
     e_rev: float = field(init=False)
@@ -129,13 +136,9 @@ class Electrochemistry:
     def _validate(self) -> None:
         """Guard against non-physical inputs."""
         if not (273.15 <= self.temperature <= 423.15):
-            raise ValueError(
-                f"temperature={self.temperature} K outside [273.15, 423.15] K"
-            )
+            raise ValueError(f"temperature={self.temperature} K outside [273.15, 423.15] K")
         if not (1e4 <= self.pressure <= 1e8):
-            raise ValueError(
-                f"pressure={self.pressure} Pa outside [1e4, 1e8] Pa"
-            )
+            raise ValueError(f"pressure={self.pressure} Pa outside [1e4, 1e8] Pa")
         if self.j0_anode <= 0 or self.j0_cathode <= 0:
             raise ValueError("exchange current densities must be positive")
         if not (0 < self.alpha_anode <= 1) or not (0 < self.alpha_cathode <= 1):
@@ -215,13 +218,7 @@ class Electrochemistry:
     def ohmic_resistance_total(self) -> float:
         """Total area-specific cell resistance [Ω·m²]."""
         r_membrane = self.membrane_thickness / self.membrane_conductivity
-        return (
-            r_membrane
-            + self.r_gdl_anode
-            + self.r_gdl_cathode
-            + self.r_contact
-            + self.r_bpp
-        )
+        return r_membrane + self.r_gdl_anode + self.r_gdl_cathode + self.r_contact + self.r_bpp
 
     def ohmic_overpotential(self, current_density_si: float) -> float:
         """η_ohm = j · R_total (both in SI, result in V)."""
@@ -261,7 +258,7 @@ class Electrochemistry:
         current_density_si: float,
         include_concentration: bool = True,
         j_limiting_si: float = 30_000.0,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Complete cell voltage decomposition. All inputs SI, all outputs SI.
 
@@ -304,7 +301,7 @@ class Electrochemistry:
 
     # -------------------- Efficiency -------------------- #
 
-    def efficiency(self, current_density_si: float) -> Dict[str, float]:
+    def efficiency(self, current_density_si: float) -> dict[str, float]:
         """
         Efficiency metrics.
 
@@ -321,9 +318,7 @@ class Electrochemistry:
         eta_energy = eta_voltage * self.faraday_efficiency * (LHV_H2 / DELTA_H_H2O)
 
         # J per kg H2 produced at this U_cell
-        specific_energy_j_kg = (u_cell * N_ELECTRONS_H2O * F) / (
-            M_H2 * self.faraday_efficiency
-        )
+        specific_energy_j_kg = (u_cell * N_ELECTRONS_H2O * F) / (M_H2 * self.faraday_efficiency)
         specific_energy_kwh_kg = U.j_per_kg_to_kwh_per_kg(specific_energy_j_kg)
 
         return {
@@ -340,7 +335,7 @@ class Electrochemistry:
         self,
         current_density_si: float,
         active_area_si: float,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """
         Hydrogen production rate at the given operating point.
 
@@ -371,7 +366,7 @@ class Electrochemistry:
         current_densities_si: np.ndarray,
         include_concentration: bool = True,
         j_limiting_si: float = 30_000.0,
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """
         Vectorized polarization curve. Input and output in SI.
 
@@ -407,9 +402,7 @@ class Electrochemistry:
 # -------------------- Module self-test -------------------- #
 
 if __name__ == "__main__":
-    cell = Electrochemistry.from_engineering(
-        temperature_celsius=80.0, pressure_bar=10.0
-    )
+    cell = Electrochemistry.from_engineering(temperature_celsius=80.0, pressure_bar=10.0)
     j_si = U.a_per_cm2_to_a_per_m2(1.0)  # 1 A/cm² → 10,000 A/m²
     v = cell.cell_voltage(j_si)
     e = cell.efficiency(j_si)

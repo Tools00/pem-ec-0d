@@ -16,7 +16,6 @@ Alle Berechnungen in SI. Engineering-Konversion nur in UI-Schicht.
 """
 
 from dataclasses import dataclass
-from typing import Dict
 
 import numpy as np
 
@@ -46,7 +45,7 @@ class Stack:
 
     # -------------------- Stack-Voltage & Power -------------------- #
 
-    def stack_voltage(self, current_density_si: float) -> Dict[str, float]:
+    def stack_voltage(self, current_density_si: float) -> dict[str, float]:
         """
         U_stack = N · U_cell   (SI, V)
 
@@ -62,7 +61,7 @@ class Stack:
             "current_a": current_density_si * self.active_area_si,
         }
 
-    def stack_power(self, current_density_si: float) -> Dict[str, float]:
+    def stack_power(self, current_density_si: float) -> dict[str, float]:
         """
         Leistungsaufnahme des Stacks.
 
@@ -78,7 +77,8 @@ class Stack:
 
         p_electric_w = v["u_stack"] * v["current_a"]
         # LHV of H2 = 241.82 kJ/mol → energy in the hydrogen product stream
-        from .constants import LHV_H2, N_ELECTRONS_H2O
+        from .constants import LHV_H2
+
         p_h2_lhv_w = self.n_cells * h2["n_dot_mol_per_s"] * LHV_H2
 
         return {
@@ -94,7 +94,7 @@ class Stack:
 
     # -------------------- Stack H2-Production -------------------- #
 
-    def stack_h2_production(self, current_density_si: float) -> Dict[str, float]:
+    def stack_h2_production(self, current_density_si: float) -> dict[str, float]:
         """
         Gesamte H2-Produktion des Stacks = N · cell_production.
         """
@@ -109,7 +109,7 @@ class Stack:
 
     # -------------------- Stack Efficiency -------------------- #
 
-    def stack_efficiency(self, current_density_si: float) -> Dict[str, float]:
+    def stack_efficiency(self, current_density_si: float) -> dict[str, float]:
         """
         Stack-Wirkungsgrad.
 
@@ -127,7 +127,7 @@ class Stack:
     def polarization_curve(
         self,
         current_densities_si: np.ndarray,
-    ) -> Dict[str, np.ndarray]:
+    ) -> dict[str, np.ndarray]:
         """
         Stack-Polarisationskurve. U_stack = N · U_cell vektorisiert.
         """
@@ -139,7 +139,6 @@ class Stack:
             "eta_energy": cell_pol["eta_energy"],
             "current_a": current_densities_si * self.active_area_si,
             "p_electric_w": (
-                self.n_cells * cell_pol["u_cell"]
-                * current_densities_si * self.active_area_si
+                self.n_cells * cell_pol["u_cell"] * current_densities_si * self.active_area_si
             ),
         }

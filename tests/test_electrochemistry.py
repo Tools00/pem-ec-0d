@@ -14,11 +14,11 @@ import numpy as np
 import pytest
 
 from src import units as U
-from src.constants import R, F, DE0_DT, E0_H2O, T_STANDARD
+from src.constants import DE0_DT, E0_H2O, T_STANDARD, F, R
 from src.electrochemistry import Electrochemistry
 
-
 # ---------------- Tafel slope validation ---------------- #
+
 
 def test_tafel_slope_matches_analytical():
     """
@@ -56,6 +56,7 @@ def test_tafel_slope_values_at_80c():
 
 # ---------------- Monotonicity ---------------- #
 
+
 def test_u_cell_monotonic_in_current():
     cell = Electrochemistry.from_engineering()
     j_si = np.linspace(1e2, 2.5e4, 100)  # 0.01 A/cm² … 2.5 A/cm²
@@ -65,6 +66,7 @@ def test_u_cell_monotonic_in_current():
 
 
 # ---------------- Nernst sanity ---------------- #
+
 
 def test_reversible_voltage_at_standard_conditions():
     cell = Electrochemistry(temperature=T_STANDARD, pressure=101_325.0)
@@ -93,6 +95,7 @@ def test_reversible_voltage_pressure_dependence():
 
 # ---------------- H2 production ---------------- #
 
+
 def test_h2_production_scaling():
     """H2 production should scale linearly with active area at fixed j."""
     cell = Electrochemistry.from_engineering()
@@ -107,18 +110,19 @@ def test_h2_production_scaling():
 
 # ---------------- Input validation ---------------- #
 
+
 @pytest.mark.parametrize(
     "kwargs",
     [
-        {"temperature": 200.0},              # below 273.15
-        {"temperature": 500.0},              # above 423.15
-        {"pressure": 1.0},                    # below 1e4 Pa
-        {"pressure": 1e10},                   # above 1e8 Pa
-        {"j0_anode": -1.0},                   # negative
-        {"alpha_anode": 0.0},                 # zero
-        {"alpha_cathode": 1.5},               # > 1
-        {"membrane_thickness": -1e-6},        # negative
-        {"membrane_conductivity": 0.0},       # zero
+        {"temperature": 200.0},  # below 273.15
+        {"temperature": 500.0},  # above 423.15
+        {"pressure": 1.0},  # below 1e4 Pa
+        {"pressure": 1e10},  # above 1e8 Pa
+        {"j0_anode": -1.0},  # negative
+        {"alpha_anode": 0.0},  # zero
+        {"alpha_cathode": 1.5},  # > 1
+        {"membrane_thickness": -1e-6},  # negative
+        {"membrane_conductivity": 0.0},  # zero
     ],
 )
 def test_invalid_parameters_rejected(kwargs):
@@ -147,6 +151,7 @@ def test_concentration_raises_at_limit():
 
 
 # ---------------- Sanity ranges for typical PEM-EC operating point ---------------- #
+
 
 def test_sensible_voltage_at_typical_operating_point():
     """

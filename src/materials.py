@@ -9,7 +9,6 @@ ein Dict — weniger Dependencies, einfacher zu reviewen.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Tuple
 
 
 @dataclass(frozen=True)
@@ -26,16 +25,17 @@ class MembraneSpec:
         ref:               Literaturquelle
         valid_temp_k:      Gültigkeitsbereich Temperatur [K]
     """
+
     name: str
     thickness_m: float
     conductivity_sm: float
     water_uptake: float
     ewt_g_mol: float
     ref: str
-    valid_temp_k: Tuple[float, float]
+    valid_temp_k: tuple[float, float]
 
 
-MEMBRANES: Dict[str, MembraneSpec] = {
+MEMBRANES: dict[str, MembraneSpec] = {
     "Nafion 212": MembraneSpec(
         name="Nafion 212",
         thickness_m=50.8e-6,
@@ -106,6 +106,7 @@ class CatalystSpec:
         loading_mg_cm2:  typ. Beladung [mg/cm²]
         ref:             Literaturquelle
     """
+
     name: str
     side: str
     j0_a_m2: float
@@ -114,7 +115,7 @@ class CatalystSpec:
     ref: str
 
 
-CATALYSTS_ANODE: Dict[str, CatalystSpec] = {
+CATALYSTS_ANODE: dict[str, CatalystSpec] = {
     "IrO2 (commercial)": CatalystSpec(
         name="IrO2 (commercial)",
         side="anode",
@@ -142,7 +143,7 @@ CATALYSTS_ANODE: Dict[str, CatalystSpec] = {
 }
 
 
-CATALYSTS_CATHODE: Dict[str, CatalystSpec] = {
+CATALYSTS_CATHODE: dict[str, CatalystSpec] = {
     "Pt/C (commercial)": CatalystSpec(
         name="Pt/C (commercial)",
         side="cathode",
@@ -176,6 +177,7 @@ class GDLSpec:
     Gas-Diffusion-Layer / Porous-Transport-Layer Spezifikation.
     r_specific_ohm_m2: area-specific resistance [Ω·m²]
     """
+
     name: str
     side: str
     r_specific_ohm_m2: float
@@ -184,11 +186,11 @@ class GDLSpec:
     ref: str
 
 
-GDL_ANODE: Dict[str, GDLSpec] = {
+GDL_ANODE: dict[str, GDLSpec] = {
     "Ti felt (1 mm)": GDLSpec(
         name="Ti felt (1 mm)",
         side="anode",
-        r_specific_ohm_m2=2e-6,   # ≈ 0.02 Ω·cm²
+        r_specific_ohm_m2=2e-6,  # ≈ 0.02 Ω·cm²
         porosity=0.7,
         thickness_m=1.0e-3,
         ref="Grigoriev et al. (2009), Int. J. Hydrogen Energy 34(14)",
@@ -203,7 +205,7 @@ GDL_ANODE: Dict[str, GDLSpec] = {
     ),
 }
 
-GDL_CATHODE: Dict[str, GDLSpec] = {
+GDL_CATHODE: dict[str, GDLSpec] = {
     "Carbon paper (Toray TGP-H-060)": GDLSpec(
         name="Carbon paper (Toray TGP-H-060)",
         side="cathode",
