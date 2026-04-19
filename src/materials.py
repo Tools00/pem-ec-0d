@@ -99,12 +99,16 @@ class CatalystSpec:
     Katalysator-Spezifikation.
 
     Attributes:
-        name:            Material
-        side:            'anode' | 'cathode'
-        j0_a_m2:         Austauschstromdichte [A/m²] bei 80 °C, 1 atm
-        alpha:           Ladungstransfer-Koeffizient
-        loading_mg_cm2:  typ. Beladung [mg/cm²]
-        ref:             Literaturquelle
+        name:                     Material
+        side:                     'anode' | 'cathode'
+        j0_a_m2:                  Austauschstromdichte [A/m²] bei 80 °C, 1 atm
+        alpha:                    Ladungstransfer-Koeffizient
+        loading_mg_cm2:           typ. Beladung [mg/cm²]
+        activation_energy_j_mol:  scheinbare Aktivierungsenergie E_a [J/mol] für
+                                  Arrhenius-Korrektur j0(T). Anode/OER auf Ir-Basis:
+                                  ~50–70 kJ/mol; Kathode/HER auf Pt: ~18–30 kJ/mol.
+                                  Siehe ADR 004.
+        ref:                      Literaturquelle
     """
 
     name: str
@@ -112,6 +116,7 @@ class CatalystSpec:
     j0_a_m2: float
     alpha: float
     loading_mg_cm2: float
+    activation_energy_j_mol: float
     ref: str
 
 
@@ -122,7 +127,8 @@ CATALYSTS_ANODE: dict[str, CatalystSpec] = {
         j0_a_m2=10.0,
         alpha=0.5,
         loading_mg_cm2=2.0,
-        ref="Carmo et al. (2013), Tab. 4",
+        activation_energy_j_mol=52_000.0,
+        ref="Carmo et al. (2013), Tab. 4; E_a: Suermann et al. (2017), J. Power Sources 365",
     ),
     "IrRuOx": CatalystSpec(
         name="IrRuOx",
@@ -130,7 +136,8 @@ CATALYSTS_ANODE: dict[str, CatalystSpec] = {
         j0_a_m2=50.0,
         alpha=0.55,
         loading_mg_cm2=1.5,
-        ref="Bernt et al. (2018), J. Electrochem. Soc. 165(5)",
+        activation_energy_j_mol=48_000.0,
+        ref="Bernt et al. (2018), J. Electrochem. Soc. 165(5); E_a: Ir-Ru mixed-oxide consensus",
     ),
     "IrO2-TiO2 (low-loading)": CatalystSpec(
         name="IrO2-TiO2 (low-loading)",
@@ -138,7 +145,8 @@ CATALYSTS_ANODE: dict[str, CatalystSpec] = {
         j0_a_m2=5.0,
         alpha=0.45,
         loading_mg_cm2=0.4,
-        ref="Siracusano et al. (2017), Appl. Catal. B 219",
+        activation_energy_j_mol=56_000.0,
+        ref="Siracusano et al. (2017), Appl. Catal. B 219; E_a: support-stabilized IrO₂",
     ),
 }
 
@@ -150,7 +158,8 @@ CATALYSTS_CATHODE: dict[str, CatalystSpec] = {
         j0_a_m2=1.0e3,
         alpha=0.5,
         loading_mg_cm2=0.4,
-        ref="Carmo et al. (2013), Tab. 4",
+        activation_energy_j_mol=25_000.0,
+        ref="Carmo et al. (2013), Tab. 4; E_a: Durst et al. (2014), EES 7",
     ),
     "Pt black": CatalystSpec(
         name="Pt black",
@@ -158,7 +167,8 @@ CATALYSTS_CATHODE: dict[str, CatalystSpec] = {
         j0_a_m2=2.0e3,
         alpha=0.5,
         loading_mg_cm2=1.0,
-        ref="Bernt et al. (2018), J. Electrochem. Soc. 165(5)",
+        activation_energy_j_mol=20_000.0,
+        ref="Bernt et al. (2018), J. Electrochem. Soc. 165(5); E_a: unsupported-Pt HER",
     ),
     "Pt-alloy (PtCo/C)": CatalystSpec(
         name="Pt-alloy (PtCo/C)",
@@ -166,7 +176,8 @@ CATALYSTS_CATHODE: dict[str, CatalystSpec] = {
         j0_a_m2=1.5e3,
         alpha=0.5,
         loading_mg_cm2=0.3,
-        ref="Huang et al. (2015), Science 348(6240)",
+        activation_energy_j_mol=22_000.0,
+        ref="Huang et al. (2015), Science 348(6240); E_a: Pt-alloy HER",
     ),
 }
 

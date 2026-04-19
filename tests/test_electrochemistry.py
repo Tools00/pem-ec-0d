@@ -15,7 +15,11 @@ import pytest
 
 from src import units as U
 from src.constants import DE0_DT, E0_H2O, T_STANDARD, F, R
-from src.electrochemistry import Electrochemistry, springer_membrane_conductivity
+from src.electrochemistry import (
+    Electrochemistry,
+    arrhenius_exchange_current_density,
+    springer_membrane_conductivity,
+)
 
 # ---------------- Tafel slope validation ---------------- #
 
@@ -222,3 +226,88 @@ def test_springer_realistic_nafion_at_80c():
     """
     sigma = springer_membrane_conductivity(22.0, 353.15)
     assert 17.0 < sigma < 22.0, f"σ={sigma:.2f} S/m outside expected 17–22 range"
+
+
+# ---------------- Arrhenius j₀(T) ---------------- #
+
+
+def test_arrhenius_identity_at_reference_temperature():
+    """At T = T_ref the correction factor must be exactly 1."""
+    j0_ref = 10.0
+    j0_t = arrhenius_exchange_current_density(
+        j0_reference=j0_ref,
+        activation_energy_j_mol=52_000.0,
+        temperature_k=353.15,
+        reference_temperature_k=353.15,
+    )
+    assert math.isclose(j0_t, j0_ref, rel_tol=1e-12)
+
+
+def test_arrhenius_monotonic_in_temperature():
+    """Positive E_a → j0(T) strictly increases with T."""
+    temps = np.linspace(293.15, 373.15, 10)
+    j0 = [
+        arrhenius_exchange_current_density(
+            j0_reference=10.0,
+            activation_energy_j_mol=52_000.0,
+            temperature_k=t,
+        )
+        for t in temps
+    ]
+    diffs = np.diff(j0)
+    assert np.all(diffs > 0), f"j0(T) not monotonic: {j0}"
+
+
+def test_arrhenius_iro2_drops_at_room_temperature():
+    """
+    For IrO₂ (E_a = 52 kJ/mol), j0(298 K) / j0(353 K) should be ≈ 0.05
+    (factor ~20 drop from 80 °C to 25 °C). Literature consensus.
+    """
+    j0_353 = arrhenius_exchange_current_density(
+        j0_reference=10.0, activation_energy_j_mol=52_000.0, temperature_k=353.15
+    )
+    j0_298 = arrhenius_exchange_current_density(
+        j0_reference=10.0, activation_energy_j_mol=52_000.0, temperature_k=298.15
+    )
+    ratio = j0_298 / j0_353
+    assert 0.03 < ratio < 0.08, f"j0(298)/j0(353)={ratio:.3f} outside expected 0.03–0.08"
+
+
+def test_arrhenius_pt_her_weaker_temperature_dependence():
+    """
+    For Pt/C HER (E_a = 25 kJ/mol), temperature dependence is weaker than for IrO₂.
+    Ratio j0(353)/j0(298) with E_a=25 kJ/mol < ratio with E_a=52 kJ/mol.
+    """
+    ratio_pt = arrhenius_exchange_current_density(
+        1.0, 25_000.0, 353.15
+    ) / arrhenius_exchange_current_density(1.0, 25_000.0, 298.15)
+    ratio_ir = arrhenius_exchange_current_density(
+        1.0, 52_000.0, 353.15
+    ) / arrhenius_exchange_current_density(1.0, 52_000.0, 298.15)
+    assert ratio_pt < ratio_ir
+
+
+def test_arrhenius_rejects_nonpositive_j0_reference():
+    with pytest.raises(ValueError, match="j0_reference"):
+        arrhenius_exchange_current_density(0.0, 52_000.0, 353.15)
+    with pytest.raises(ValueError, match="j0_reference"):
+        arrhenius_exchange_current_density(-1.0, 52_000.0, 353.15)
+
+
+def test_arrhenius_rejects_nonpositive_activation_energy():
+    with pytest.raises(ValueError, match="activation_energy_j_mol"):
+        arrhenius_exchange_current_density(10.0, 0.0, 353.15)
+    with pytest.raises(ValueError, match="activation_energy_j_mol"):
+        arrhenius_exchange_current_density(10.0, -1000.0, 353.15)
+
+
+def test_arrhenius_rejects_out_of_range_temperature():
+    with pytest.raises(ValueError, match="temperature_k"):
+        arrhenius_exchange_current_density(10.0, 52_000.0, 500.0)
+    with pytest.raises(ValueError, match="temperature_k"):
+        arrhenius_exchange_current_density(10.0, 52_000.0, 250.0)
+
+
+def test_arrhenius_rejects_out_of_range_reference_temperature():
+    with pytest.raises(ValueError, match="reference_temperature_k"):
+        arrhenius_exchange_current_density(10.0, 52_000.0, 353.15, reference_temperature_k=500.0)

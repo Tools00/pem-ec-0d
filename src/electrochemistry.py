@@ -92,6 +92,55 @@ def springer_membrane_conductivity(
     return float(sigma_s_per_cm * 100.0)  # S/cm → S/m
 
 
+def arrhenius_exchange_current_density(
+    j0_reference: float,
+    activation_energy_j_mol: float,
+    temperature_k: float,
+    reference_temperature_k: float = 353.15,
+) -> float:
+    """
+    Temperature-corrected exchange current density (Arrhenius).
+
+        j0(T) = j0_ref · exp( −E_a / R · (1/T − 1/T_ref) )
+
+    Args:
+        j0_reference:            j0 measured at reference temperature [A/m²]
+        activation_energy_j_mol: apparent activation energy E_a [J/mol]
+                                 OER/IrO₂:  ~50–70 kJ/mol
+                                 HER/Pt:    ~18–30 kJ/mol
+        temperature_k:           operating temperature [K]
+        reference_temperature_k: temperature at which j0_reference was measured [K].
+                                 Defaults to 353.15 K (80 °C), the convention used
+                                 in the material-preset table.
+
+    Returns:
+        j0(T) in A/m².
+
+    @ref: Carmo et al. (2013), Eq. (9) and discussion p. 4908.
+          Suermann et al. (2017), J. Power Sources 365 — IrO₂ E_a ≈ 52 kJ/mol.
+          Durst et al. (2014), Energy Environ. Sci. 7 — Pt HER E_a ≈ 25 kJ/mol.
+    @valid-range: T in [273, 423] K; E_a > 0; physically meaningful for
+                  |T − T_ref| ≲ 80 K before higher-order effects matter.
+    """
+    if j0_reference <= 0:
+        raise ValueError(f"j0_reference must be > 0, got {j0_reference}")
+    if activation_energy_j_mol <= 0:
+        raise ValueError(f"activation_energy_j_mol must be > 0, got {activation_energy_j_mol}")
+    if not (273.15 <= temperature_k <= 423.15):
+        raise ValueError(f"temperature_k={temperature_k} outside [273.15, 423.15] K")
+    if not (273.15 <= reference_temperature_k <= 423.15):
+        raise ValueError(
+            f"reference_temperature_k={reference_temperature_k} outside [273.15, 423.15] K"
+        )
+
+    return float(
+        j0_reference
+        * np.exp(
+            -activation_energy_j_mol / R * (1.0 / temperature_k - 1.0 / reference_temperature_k)
+        )
+    )
+
+
 # -------------------- Data class -------------------- #
 
 

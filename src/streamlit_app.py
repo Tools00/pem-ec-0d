@@ -20,7 +20,11 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src import units as U
-from src.electrochemistry import Electrochemistry, springer_membrane_conductivity
+from src.electrochemistry import (
+    Electrochemistry,
+    arrhenius_exchange_current_density,
+    springer_membrane_conductivity,
+)
 from src.materials import (
     CATALYSTS_ANODE,
     CATALYSTS_CATHODE,
@@ -149,13 +153,32 @@ st.sidebar.caption(
     f"σ(Springer)={sigma_springer:.1f} S/m @ {t_c:.0f} °C"
 )
 
+# Exchange current densities corrected for operating temperature via Arrhenius.
+# Preset j0 values are reported at 80 °C (353.15 K). See ADR 004.
+j0_anode_t = arrhenius_exchange_current_density(
+    j0_reference=cat_anode.j0_a_m2,
+    activation_energy_j_mol=cat_anode.activation_energy_j_mol,
+    temperature_k=t_kelvin,
+)
+j0_cathode_t = arrhenius_exchange_current_density(
+    j0_reference=cat_cathode.j0_a_m2,
+    activation_energy_j_mol=cat_cathode.activation_energy_j_mol,
+    temperature_k=t_kelvin,
+)
+
+st.sidebar.caption(
+    f"→ j₀(T): anode {j0_anode_t:.2g} A/m², cathode {j0_cathode_t:.2g} A/m² "
+    f"(E_a: {cat_anode.activation_energy_j_mol / 1e3:.0f} / "
+    f"{cat_cathode.activation_energy_j_mol / 1e3:.0f} kJ/mol)"
+)
+
 cell = Electrochemistry.from_engineering(
     temperature_celsius=t_c,
     pressure_bar=p_bar,
     membrane_conductivity_s_per_m=sigma_springer,
     membrane_thickness_um=membrane.thickness_m * 1e6,
-    j0_anode_a_per_cm2=cat_anode.j0_a_m2 / 1e4,
-    j0_cathode_a_per_cm2=cat_cathode.j0_a_m2 / 1e4,
+    j0_anode_a_per_cm2=j0_anode_t / 1e4,
+    j0_cathode_a_per_cm2=j0_cathode_t / 1e4,
     alpha_anode=cat_anode.alpha,
     alpha_cathode=cat_cathode.alpha,
     r_gdl_anode_ohm_cm2=gdl_a.r_specific_ohm_m2 * 1e4,
