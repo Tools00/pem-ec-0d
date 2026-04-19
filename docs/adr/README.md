@@ -11,6 +11,7 @@ Pro relevante Architektur-Entscheidung eine Datei. Immer dieselbe Struktur:
 |---|---|---|---|
 | [001](001-python-0d-mvp.md) | Python + 0D-Modell für MVP | Accepted | 2026-04-19 |
 | [002](002-hybrid-vs-cfd.md) | Hybrid-Ansatz vs. Full-CFD (AVL Fire M & Co.) | Accepted | 2026-04-19 |
+| [003](003-springer-membrane-conductivity.md) | Springer-Modell für σ(λ, T) statt statischem Preset | Accepted | 2026-04-19 |
 
 ## Regeln
 

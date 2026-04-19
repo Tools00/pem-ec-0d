@@ -15,7 +15,7 @@ import pytest
 
 from src import units as U
 from src.constants import DE0_DT, E0_H2O, T_STANDARD, F, R
-from src.electrochemistry import Electrochemistry
+from src.electrochemistry import Electrochemistry, springer_membrane_conductivity
 
 # ---------------- Tafel slope validation ---------------- #
 
@@ -162,3 +162,63 @@ def test_sensible_voltage_at_typical_operating_point():
     j_si = U.a_per_cm2_to_a_per_m2(1.0)
     u = cell.cell_voltage(j_si)["u_cell"]
     assert 1.6 < u < 2.2, f"U_cell={u:.3f} V outside plausible 1.6–2.2 V range"
+
+
+# ---------------- Springer membrane conductivity σ(λ, T) ---------------- #
+
+
+def test_springer_reference_value_at_303k():
+    """
+    Springer 1991 Eq. (23) at T = 303 K, λ = 22 (fully hydrated) must yield
+    the literature value:
+        σ = (0.005139·22 − 0.00326) · exp(0) S/cm
+          = 0.10980 S/cm = 10.980 S/m
+    """
+    sigma = springer_membrane_conductivity(lambda_h2o=22.0, temperature_k=303.0)
+    expected_s_per_m = (0.005139 * 22.0 - 0.00326) * 100.0
+    assert math.isclose(sigma, expected_s_per_m, rel_tol=1e-9), (
+        f"Got {sigma:.4f} S/m, expected {expected_s_per_m:.4f}"
+    )
+
+
+def test_springer_conductivity_increases_with_temperature():
+    """
+    Arrhenius-like behaviour: σ(353 K) > σ(303 K) at the same λ.
+    Ratio at 80 °C vs. 30 °C should be ~1.8 (Springer calibration).
+    """
+    sigma_303 = springer_membrane_conductivity(22.0, 303.0)
+    sigma_353 = springer_membrane_conductivity(22.0, 353.0)
+    assert sigma_353 > sigma_303
+    ratio = sigma_353 / sigma_303
+    assert 1.6 < ratio < 2.0, f"σ(353)/σ(303) = {ratio:.3f} outside 1.6–2.0"
+
+
+def test_springer_conductivity_increases_with_hydration():
+    """Drier membrane must have lower conductivity (monotonic in λ)."""
+    sigma_dry = springer_membrane_conductivity(10.0, 353.0)
+    sigma_wet = springer_membrane_conductivity(22.0, 353.0)
+    assert sigma_wet > sigma_dry
+
+
+def test_springer_rejects_dry_membrane():
+    """λ ≤ 0.6344 yields non-positive σ → must raise."""
+    with pytest.raises(ValueError, match="Springer formula"):
+        springer_membrane_conductivity(0.5, 353.0)
+
+
+def test_springer_rejects_out_of_range_temperature():
+    """T outside physical bounds must raise."""
+    with pytest.raises(ValueError, match="temperature_k"):
+        springer_membrane_conductivity(22.0, 500.0)
+    with pytest.raises(ValueError, match="temperature_k"):
+        springer_membrane_conductivity(22.0, 250.0)
+
+
+def test_springer_realistic_nafion_at_80c():
+    """
+    Fully hydrated Nafion at 80 °C should give σ ≈ 17–22 S/m
+    (literature consensus for liquid-water contact). Value at
+    (λ=22, T=353.15) should fall inside this band.
+    """
+    sigma = springer_membrane_conductivity(22.0, 353.15)
+    assert 17.0 < sigma < 22.0, f"σ={sigma:.2f} S/m outside expected 17–22 range"

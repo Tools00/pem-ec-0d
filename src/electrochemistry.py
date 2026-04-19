@@ -44,6 +44,54 @@ from .constants import (
     R,
 )
 
+# -------------------- Module-level physics functions -------------------- #
+
+
+# Threshold below which Springer's formula predicts σ ≤ 0 (non-physical).
+# Solving 0.005139·λ − 0.00326 = 0 gives λ ≈ 0.6344.
+_SPRINGER_LAMBDA_MIN = 0.6344
+
+
+def springer_membrane_conductivity(
+    lambda_h2o: float,
+    temperature_k: float,
+) -> float:
+    """
+    Proton conductivity of perfluorosulfonic-acid membranes (Nafion-type)
+    as a function of water content λ and temperature T.
+
+        σ [S/cm] = (0.005139·λ − 0.00326) · exp(1268·(1/303 − 1/T))
+
+    Returned value is converted to SI (S/m).
+
+    Args:
+        lambda_h2o:    Water content λ = mol H2O per mol SO3H  [-]
+                       Typical PEM-EC range: 14–22 (liquid-water contact, fully swollen)
+        temperature_k: Membrane temperature  [K]
+
+    Returns:
+        σ in S/m.
+
+    @ref: Springer, T. E., Zawodzinski, T. A., & Gottesfeld, S. (1991).
+          Polymer electrolyte fuel cell model. J. Electrochem. Soc. 138(8),
+          2334–2342. Eq. (23).
+    @valid-range: λ in (0.634, 24]; T in [293.15, 373.15] K (Springer's calibration).
+                  Extrapolations outside are permitted but lose accuracy.
+    """
+    if lambda_h2o <= _SPRINGER_LAMBDA_MIN:
+        raise ValueError(
+            f"lambda_h2o={lambda_h2o} ≤ {_SPRINGER_LAMBDA_MIN} — "
+            "Springer formula yields non-positive conductivity (membrane too dry)."
+        )
+    if not (273.15 <= temperature_k <= 423.15):
+        raise ValueError(f"temperature_k={temperature_k} outside [273.15, 423.15] K")
+
+    sigma_s_per_cm = (0.005139 * lambda_h2o - 0.00326) * np.exp(
+        1268.0 * (1.0 / 303.0 - 1.0 / temperature_k)
+    )
+    return float(sigma_s_per_cm * 100.0)  # S/cm → S/m
+
+
 # -------------------- Data class -------------------- #
 
 

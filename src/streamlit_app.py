@@ -20,7 +20,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src import units as U
-from src.electrochemistry import Electrochemistry
+from src.electrochemistry import Electrochemistry, springer_membrane_conductivity
 from src.materials import (
     CATALYSTS_ANODE,
     CATALYSTS_CATHODE,
@@ -60,10 +60,19 @@ membrane_sel = st.sidebar.selectbox(
     help="Preset selects thickness + conductivity + water uptake",
 )
 membrane = MEMBRANES[membrane_sel]
-st.sidebar.caption(
-    f"→ {membrane.thickness_m * 1e6:.0f} μm, σ={membrane.conductivity_sm:.1f} S/m, "
-    f"λ_max={membrane.water_uptake:.0f}"
+
+hydration_factor = st.sidebar.slider(
+    "Membrane hydration λ/λ_max",
+    min_value=0.30,
+    max_value=1.00,
+    value=1.00,
+    step=0.05,
+    help=(
+        "Water content relative to the maximum for this membrane. "
+        "PEM-EC with liquid-water feed typically sits at ~1.0 (fully hydrated)."
+    ),
 )
+lambda_effective = hydration_factor * membrane.water_uptake
 
 cat_anode_sel = st.sidebar.selectbox(
     "Anode catalyst (OER)",
@@ -127,10 +136,23 @@ coolant_cp = st.sidebar.number_input(
 )
 
 # ---------------- Build models ---------------- #
+# Membrane conductivity computed dynamically via Springer (1991) σ(λ, T)
+# rather than using the static preset value — see ADR 003.
+t_kelvin = U.celsius_to_kelvin(t_c)
+sigma_springer = springer_membrane_conductivity(
+    lambda_h2o=lambda_effective,
+    temperature_k=t_kelvin,
+)
+
+st.sidebar.caption(
+    f"→ {membrane.thickness_m * 1e6:.0f} μm, λ={lambda_effective:.1f}, "
+    f"σ(Springer)={sigma_springer:.1f} S/m @ {t_c:.0f} °C"
+)
+
 cell = Electrochemistry.from_engineering(
     temperature_celsius=t_c,
     pressure_bar=p_bar,
-    membrane_conductivity_s_per_m=membrane.conductivity_sm,
+    membrane_conductivity_s_per_m=sigma_springer,
     membrane_thickness_um=membrane.thickness_m * 1e6,
     j0_anode_a_per_cm2=cat_anode.j0_a_m2 / 1e4,
     j0_cathode_a_per_cm2=cat_cathode.j0_a_m2 / 1e4,
