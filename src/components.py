@@ -12,7 +12,6 @@ deckt nur Komponenten ab, für die v0.3 keine Datenquelle hatte.
 
 from dataclasses import dataclass
 
-
 # -------------------------- Dataclasses -------------------------- #
 
 
