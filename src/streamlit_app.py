@@ -23,6 +23,9 @@ import streamlit as st
 from src import units as U
 from src.assembly import (
     StackAssembly,
+    active_dimensions_m,
+    assembly_pressure_drop,
+    assembly_pump_power_w,
     bpp_outer_dimensions_m,
     bpp_resistance_ohm_m2,
     from_json,
@@ -145,6 +148,23 @@ active_area_cm2 = st.sidebar.number_input(
     max_value=10_000.0,
     value=100.0,
     step=1.0,
+)
+aspect_ratio = st.sidebar.slider(
+    "Aspect ratio (width / height)",
+    min_value=0.25,
+    max_value=4.0,
+    value=1.0,
+    step=0.05,
+    help=(
+        "Shape of the active area. 1.0 = square (v0.4 default). "
+        "0.5 = tall, 2.0 = wide. Area stays constant; only w·h ratio changes."
+    ),
+)
+_aw_m = (U.cm2_to_m2(active_area_cm2) * aspect_ratio) ** 0.5
+_ah_m = (U.cm2_to_m2(active_area_cm2) / aspect_ratio) ** 0.5
+st.sidebar.caption(
+    f"→ active {_aw_m * 1000:.1f} × {_ah_m * 1000:.1f} mm "
+    f"(area {active_area_cm2:.0f} cm² unchanged)"
 )
 
 # ---------------- Sidebar: Thermal ---------------- #
@@ -633,6 +653,7 @@ with tab_assembly:
         current_collector=cc_sel,
         gasket=gk_sel,
         tie_rod=tr_sel,
+        aspect_ratio=float(aspect_ratio),
     )
 
     if uploaded is not None:
@@ -649,11 +670,12 @@ with tab_assembly:
         fig_cs = draw_layer_cross_section(assembly, max_visible_cells=6)
         st.plotly_chart(fig_cs, use_container_width=True)
 
-        fig_top = draw_bpp_top_view(bpp_sel, area_si, gk_sel)
+        fig_top = draw_bpp_top_view(bpp_sel, area_si, gk_sel, aspect_ratio=float(aspect_ratio))
         st.plotly_chart(fig_top, use_container_width=True)
 
     st.markdown("### Stack stats")
-    bpp_w_m, _ = bpp_outer_dimensions_m(assembly)
+    bpp_w_m, bpp_h_m = bpp_outer_dimensions_m(assembly)
+    aw_m, ah_m = active_dimensions_m(assembly)
     stack_h_mm = total_stack_height_m(assembly) * 1000.0
     stack_m_kg = total_stack_mass_kg(assembly)
     r_bpp = bpp_resistance_ohm_m2(assembly)
@@ -662,13 +684,84 @@ with tab_assembly:
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Stack height", f"{stack_h_mm:.1f} mm")
     k2.metric("Stack mass (approx.)", f"{stack_m_kg:.2f} kg")
-    k3.metric("BPP outer edge", f"{bpp_w_m * 1000.0:.1f} mm")
+    k3.metric("BPP outer", f"{bpp_w_m * 1000.0:.1f} × {bpp_h_m * 1000.0:.1f} mm")
     k4.metric("Open-area ratio", f"{oar * 100:.0f} %")
 
     st.caption(
-        f"Effective r_bpp from assembly: {r_bpp * 1e4:.3f} mΩ·cm² "
+        f"Active area: {aw_m * 1000:.1f} × {ah_m * 1000:.1f} mm "
+        f"(aspect ratio {aspect_ratio:.2f}). "
+        f"Effective r_bpp: {r_bpp * 1e4:.3f} mΩ·cm² "
         f"(ρ·t of {assembly.bipolar_plate_spec().material}) — active in Polarization tab."
     )
+
+    st.divider()
+    st.markdown("### Flow field — pressure drop & pump power")
+    st.caption(
+        "Laminar ΔP via Darcy-Weisbach with Shah & London (1978) f·Re correlation "
+        "for rectangular channels. Volumetric flow from stoichiometry "
+        "(λ · I / (2·F) · M_H₂O / ρ)."
+    )
+
+    fc1, fc2 = st.columns(2)
+    with fc1:
+        stoich_lambda = st.slider(
+            "Stoichiometric ratio λ",
+            min_value=1.0,
+            max_value=200.0,
+            value=50.0,
+            step=1.0,
+            help="Water feed = λ · stoichiometric minimum. Typical PEM-EC: 10–100.",
+        )
+    with fc2:
+        eta_pump = st.slider(
+            "Pump efficiency η_pump",
+            min_value=0.10,
+            max_value=0.90,
+            value=0.50,
+            step=0.05,
+            help="Commercial membrane/centrifugal pumps for EC service: 0.3–0.7.",
+        )
+
+    current_per_cell_a = j_op_si * area_si  # I = j · A (cells in series → same I)
+    try:
+        dp_result = assembly_pressure_drop(
+            assembly,
+            current_a=current_per_cell_a,
+            temperature_k=t_kelvin,
+            stoich_ratio=stoich_lambda,
+        )
+        pump_total_w = assembly_pump_power_w(
+            assembly,
+            current_a=current_per_cell_a,
+            temperature_k=t_kelvin,
+            stoich_ratio=stoich_lambda,
+            eta_pump=eta_pump,
+        )
+        pump_frac = (
+            pump_total_w / (stack_p["p_electric_kw"] * 1000.0)
+            if stack_p["p_electric_kw"] > 0
+            else 0.0
+        )
+
+        f1, f2, f3, f4 = st.columns(4)
+        f1.metric("ΔP per cell", f"{dp_result.dp_pa / 1000:.2f} kPa")
+        f2.metric("Flow velocity", f"{dp_result.velocity_m_s * 100:.1f} cm/s")
+        f3.metric("Reynolds", f"{dp_result.reynolds:.0f}")
+        f4.metric("Pump power (stack)", f"{pump_total_w:.1f} W")
+
+        st.caption(
+            f"{dp_result.n_channels} channel(s), "
+            f"path length {dp_result.path_length_m * 1000:.1f} mm, "
+            f"D_h = {dp_result.hydraulic_diameter_m * 1e6:.0f} µm, "
+            f"f = {dp_result.friction_factor:.3f}. "
+            f"Pump parasitic: {pump_frac * 100:.2f} % of stack electrical power."
+        )
+    except ValueError as err:
+        st.warning(
+            f"Pressure-drop model out of range: {err}. "
+            "v0.5 covers laminar only (Re < 2000). Try lower current, larger channels, "
+            "or a parallel flow pattern."
+        )
 
     st.divider()
     st.markdown("**Save config**")

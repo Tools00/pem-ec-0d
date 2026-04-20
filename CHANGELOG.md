@@ -5,11 +5,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
-### Planned (next)
-- Tafel-Plot (semi-log) in der UI zur Visualisierung der Validation
-- Effizienz-Kurve η_energy(j) neben Polarisationskurve
-- Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
-- 2. Validation gegen experimentelle Paper-Kurve
+### Added (v0.5 Phase 2 — rectangular stacks + ΔP in UI)
+- **`aspect_ratio` auf `StackAssembly`** (`src/assembly.py`): dimensionslos,
+  default 1.0 (quadratisch = v0.4-Verhalten). `active_dimensions_m(a) → (w, h)`
+  mit `w·h = active_area_m2` und `w/h = aspect_ratio`. BPP-Außenmaße folgen
+  als `(w + 2·frame, h + 2·frame)` — echte rechteckige Plates.
+  - v0.4-JSONs ohne `aspect_ratio`-Feld laden weiterhin als quadratisch (Default).
+- **Fluid-Kopplung** (`src/assembly.py`): `assembly_pressure_drop(a, *, current_a,
+  temperature_k, stoich_ratio)` berechnet ΔP über `fluid.pressure_drop` mit
+  aktiven Dimensionen aus `aspect_ratio`. `assembly_pump_power_w(...)` liefert
+  Stack-Pumpenleistung (alle N Zellen hydraulisch parallel, Q_total = N·Q_cell).
+- **Streamlit Assembly-Tab**: neuer Block „Flow field — pressure drop & pump
+  power" mit λ- und η_pump-Slidern, Metrics für ΔP [kPa], v [cm/s], Re, Pump
+  [W] + Parasit-Anteil der Stack-Leistung. Turbulenter Regime (Re > 2000)
+  liefert saubere Warnung statt Crash.
+- **Streamlit Sidebar**: `aspect_ratio`-Slider 0.25…4.0; Caption zeigt
+  resultierende w × h der aktiven Fläche. Area bleibt beim Drehen konstant.
+- **13 neue Tests** (total 157): aspect_ratio area-preserving, ΔP-Linearität
+  in I, Pump-Power ∝ N, serpentine > parallel ΔP, JSON-Roundtrip mit
+  aspect_ratio, Legacy-JSON-Kompat, rechteckige BPP-Visualization.
+- **Rechteckiges Flow-Field-Rendering** (`src/visualization.py`):
+  `_draw_flow_pattern` nimmt `width_mm`+`height_mm` statt `edge_mm`. Bei
+  aspect_ratio ≠ 1.0 zeichnen alle drei Pattern (parallel, serpentine,
+  interdigitated) auf rechteckiger Fläche.
+
+### Planned (next, v0.5 Phase 3 + release)
+- Validation gegen Bernt et al. (2020) *Chem. Ing. Tech.* 92(1-2), 31–39, Fig. 1
+  (80 °C, Nafion 212, 2 mg Ir/cm², 0.35 mg Pt/cm²; RMSE-Target 40 mV)
+- ADR-007 für v0.5-Architektur-Entscheidungen
+- v0.5.0 Release-Commit + README-Update
 
 ## [0.4.1] — 2026-04-20
 

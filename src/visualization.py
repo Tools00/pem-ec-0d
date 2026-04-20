@@ -172,26 +172,36 @@ def draw_bpp_top_view(
     active_area_m2: float,
     gasket_name: str,
     *,
+    aspect_ratio: float = 1.0,
     resolution_px: int = 600,
 ) -> go.Figure:
     """
     Draufsicht der Bipolarplatte mit Flow-Field-Pattern, Gasket-Rahmen und
     Inlet/Outlet-Ports in diagonalen Ecken. Einheit Achsen: mm.
+
+    aspect_ratio = active_width / active_height, dimensionslos, > 0.
+    aspect_ratio=1.0 → quadratisch (v0.4-Default).
     """
     if bpp_name not in BIPOLAR_PLATES:
         raise KeyError(f"BPP preset {bpp_name!r} not in BIPOLAR_PLATES")
     if gasket_name not in GASKETS:
         raise KeyError(f"Gasket preset {gasket_name!r} not in GASKETS")
+    if aspect_ratio <= 0:
+        raise ValueError(f"aspect_ratio={aspect_ratio} must be positive")
     bpp = BIPOLAR_PLATES[bpp_name]
     gk = GASKETS[gasket_name]
 
-    active_edge_m = active_area_m2**0.5
-    bpp_edge_m = active_edge_m + 2 * gk.frame_width_m
+    aw_m = (active_area_m2 * aspect_ratio) ** 0.5
+    ah_m = (active_area_m2 / aspect_ratio) ** 0.5
+    bpp_w_m = aw_m + 2 * gk.frame_width_m
+    bpp_h_m = ah_m + 2 * gk.frame_width_m
 
     # alles in mm
-    bpp_w_mm = bpp_edge_m * 1000.0
+    bpp_w_mm = bpp_w_m * 1000.0
+    bpp_h_mm = bpp_h_m * 1000.0
     frame_mm = gk.frame_width_m * 1000.0
-    active_mm = active_edge_m * 1000.0
+    active_w_mm = aw_m * 1000.0
+    active_h_mm = ah_m * 1000.0
     ch_w_mm = bpp.channel_width_m * 1000.0
     pitch_mm = bpp.channel_pitch_m * 1000.0
 
@@ -203,18 +213,18 @@ def draw_bpp_top_view(
         x0=0,
         y0=0,
         x1=bpp_w_mm,
-        y1=bpp_w_mm,
+        y1=bpp_h_mm,
         line=dict(color="#2d3748", width=2),
         fillcolor=_COLORS["bpp"],
         layer="below",
     )
-    # Gasket-Frame
+    # Gasket-Frame (gezeichnet als Outline zwischen äußerer Kante und Active Area)
     fig.add_shape(
         type="rect",
         x0=frame_mm / 2,
         y0=frame_mm / 2,
         x1=bpp_w_mm - frame_mm / 2,
-        y1=bpp_w_mm - frame_mm / 2,
+        y1=bpp_h_mm - frame_mm / 2,
         line=dict(color="#744210", width=frame_mm),
         fillcolor="rgba(0,0,0,0)",
         layer="below",
@@ -224,19 +234,20 @@ def draw_bpp_top_view(
         type="rect",
         x0=frame_mm,
         y0=frame_mm,
-        x1=frame_mm + active_mm,
-        y1=frame_mm + active_mm,
+        x1=frame_mm + active_w_mm,
+        y1=frame_mm + active_h_mm,
         line=dict(color="#234e52", width=1),
         fillcolor=_COLORS["active_area"],
         layer="below",
     )
 
-    # Flow pattern innerhalb active area
+    # Flow pattern innerhalb active area (rechteckig)
     _draw_flow_pattern(
         fig,
         x0=frame_mm,
         y0=frame_mm,
-        edge_mm=active_mm,
+        width_mm=active_w_mm,
+        height_mm=active_h_mm,
         pattern=bpp.flow_pattern,
         ch_w_mm=ch_w_mm,
         pitch_mm=pitch_mm,
@@ -245,7 +256,7 @@ def draw_bpp_top_view(
     # Ports (Kreise) in diagonalen Ecken
     port_r_mm = min(frame_mm * 0.35, 4.0)
     for px, py in [
-        (frame_mm / 2, bpp_w_mm - frame_mm / 2),  # inlet top-left
+        (frame_mm / 2, bpp_h_mm - frame_mm / 2),  # inlet top-left
         (bpp_w_mm - frame_mm / 2, frame_mm / 2),  # outlet bottom-right
     ]:
         fig.add_shape(
@@ -263,10 +274,15 @@ def draw_bpp_top_view(
     fig.update_layout(
         title=(
             f"BPP top view — {bpp.flow_pattern} · {bpp.material} · "
-            f"{bpp_w_mm:.1f} × {bpp_w_mm:.1f} mm · open-area {oar * 100:.0f}%"
+            f"{bpp_w_mm:.1f} × {bpp_h_mm:.1f} mm · open-area {oar * 100:.0f}%"
         ),
-        xaxis=dict(range=[-2, bpp_w_mm + 2], scaleanchor="y", scaleratio=1, title="x [mm]"),
-        yaxis=dict(range=[-2, bpp_w_mm + 2], title="y [mm]"),
+        xaxis=dict(
+            range=[-2, max(bpp_w_mm, bpp_h_mm) + 2],
+            scaleanchor="y",
+            scaleratio=1,
+            title="x [mm]",
+        ),
+        yaxis=dict(range=[-2, max(bpp_w_mm, bpp_h_mm) + 2], title="y [mm]"),
         height=resolution_px,
         width=resolution_px,
         plot_bgcolor="#fafafa",
@@ -280,15 +296,22 @@ def _draw_flow_pattern(
     *,
     x0: float,
     y0: float,
-    edge_mm: float,
+    width_mm: float,
+    height_mm: float,
     pattern: str,
     ch_w_mm: float,
     pitch_mm: float,
 ) -> None:
-    """Zeichnet Flow-Field-Kanäle als SVG-Rechtecke auf fig."""
-    if pitch_mm <= 0:
+    """
+    Zeichnet Flow-Field-Kanäle als SVG-Rechtecke auf fig.
+
+    Kanäle laufen horizontal (entlang x); Anzahl der Kanäle ergibt sich aus
+    `height_mm / pitch_mm`, Kanallänge aus `width_mm`. Bei quadratischer
+    Fläche ist width == height, sonst rechteckig (v0.5).
+    """
+    if pitch_mm <= 0 or width_mm <= 0 or height_mm <= 0:
         return
-    n_channels = max(1, int(edge_mm // pitch_mm))
+    n_channels = max(1, int(height_mm // pitch_mm))
     if pattern == "parallel":
         for i in range(n_channels):
             cy = y0 + pitch_mm * (i + 0.5)
@@ -296,7 +319,7 @@ def _draw_flow_pattern(
                 type="rect",
                 x0=x0 + 2.0,
                 y0=cy - ch_w_mm / 2,
-                x1=x0 + edge_mm - 2.0,
+                x1=x0 + width_mm - 2.0,
                 y1=cy + ch_w_mm / 2,
                 line=dict(width=0),
                 fillcolor=_COLORS["channel"],
@@ -307,7 +330,7 @@ def _draw_flow_pattern(
         for i in range(n_channels):
             cy = y0 + pitch_mm * (i + 0.5)
             left = x0 + 2.0 if i % 2 == 0 else x0 + pitch_mm
-            right = x0 + edge_mm - pitch_mm if i % 2 == 0 else x0 + edge_mm - 2.0
+            right = x0 + width_mm - pitch_mm if i % 2 == 0 else x0 + width_mm - 2.0
             fig.add_shape(
                 type="rect",
                 x0=left,
@@ -322,7 +345,7 @@ def _draw_flow_pattern(
         for i in range(n_channels - 1):
             cy1 = y0 + pitch_mm * (i + 0.5)
             cy2 = y0 + pitch_mm * (i + 1.5)
-            cx = x0 + edge_mm - pitch_mm if i % 2 == 0 else x0 + pitch_mm
+            cx = x0 + width_mm - pitch_mm if i % 2 == 0 else x0 + pitch_mm
             fig.add_shape(
                 type="rect",
                 x0=cx - ch_w_mm / 2,
@@ -335,7 +358,7 @@ def _draw_flow_pattern(
             )
     elif pattern == "interdigitated":
         # abwechselnd Inlet-Finger (links) / Outlet-Finger (rechts)
-        finger_len = edge_mm * 0.9
+        finger_len = width_mm * 0.9
         for i in range(n_channels):
             cy = y0 + pitch_mm * (i + 0.5)
             if i % 2 == 0:
@@ -354,9 +377,9 @@ def _draw_flow_pattern(
                 # outlet finger (rechts)
                 fig.add_shape(
                     type="rect",
-                    x0=x0 + edge_mm - 2.0 - finger_len,
+                    x0=x0 + width_mm - 2.0 - finger_len,
                     y0=cy - ch_w_mm / 2,
-                    x1=x0 + edge_mm - 2.0,
+                    x1=x0 + width_mm - 2.0,
                     y1=cy + ch_w_mm / 2,
                     line=dict(width=0),
                     fillcolor=_COLORS["channel"],

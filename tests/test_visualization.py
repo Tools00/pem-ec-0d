@@ -43,6 +43,20 @@ def test_bpp_top_view_unknown_preset_raises():
         draw_bpp_top_view("Ti-serpentine (EC standard)", 50e-4, "Nope")
 
 
+def test_bpp_top_view_rectangular_renders():
+    """v0.5: aspect_ratio ≠ 1.0 wirft nicht und erzeugt Shapes."""
+    for ar in (0.5, 2.0, 4.0):
+        fig = draw_bpp_top_view(
+            "Ti-serpentine (EC standard)", 50e-4, "PTFE 250 um", aspect_ratio=ar
+        )
+        assert len(fig.layout.shapes) > 0
+
+
+def test_bpp_top_view_aspect_ratio_nonpositive_raises():
+    with pytest.raises(ValueError, match="aspect_ratio"):
+        draw_bpp_top_view("Ti-serpentine (EC standard)", 50e-4, "PTFE 250 um", aspect_ratio=0.0)
+
+
 def test_gasket_outline_renders():
     fig = draw_gasket_outline("PTFE 250 um", 50e-4)
     assert len(fig.layout.shapes) == 2  # outer + cut-out

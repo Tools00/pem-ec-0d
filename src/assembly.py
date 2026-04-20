@@ -29,6 +29,12 @@ from src.components import (
     GasketSpec,
     TieRodSpec,
 )
+from src.fluid import (
+    PressureDropResult,
+    pressure_drop,
+    pump_power_w,
+    stoichiometric_water_flow_m3_s,
+)
 from src.materials import (
     CATALYSTS_ANODE,
     CATALYSTS_CATHODE,
@@ -47,8 +53,10 @@ class StackAssembly:
     Vollständige Konfiguration eines Stacks. Alle Bauteile per Preset-Name.
 
     active_area_m2 ist die geometrische Fläche pro Zelle (innerhalb des
-    Gasket-Rahmens). BPP ist quadratisch angenommen mit Kante
-    sqrt(active_area) + 2 * gasket.frame_width.
+    Gasket-Rahmens). aspect_ratio (v0.5) = width/height der aktiven Fläche,
+    dimensionslos, > 0. aspect_ratio=1.0 ergibt quadratisch (v0.4-Verhalten).
+    aspect_ratio=2.0 → Breite = 2× Höhe, gleiche Gesamtfläche. BPP-Außenkante
+    folgt als (w + 2·frame, h + 2·frame).
     """
 
     n_cells: int
@@ -65,6 +73,8 @@ class StackAssembly:
     tie_rod: str
     # Optional Catalyst-Layer-Dicke aus Loading+Density; default 10 µm reicht für Visualisierung.
     catalyst_layer_thickness_m: float = field(default=10e-6)
+    # v0.5: Aspect-Ratio der aktiven Fläche (width/height). Default 1.0 = quadratisch.
+    aspect_ratio: float = field(default=1.0)
 
     # ---------------- Preset resolution ---------------- #
 
@@ -150,15 +160,31 @@ def total_stack_mass_kg(a: StackAssembly) -> float:
     return m_bpp + m_ep + m_cc
 
 
+def active_dimensions_m(a: StackAssembly) -> tuple[float, float]:
+    """
+    Aktive Fläche (width, height) [m]. Bei aspect_ratio=1.0 quadratisch.
+
+    Beziehung:  w · h = active_area_m2  und  w / h = aspect_ratio
+    →  w = sqrt(A · aspect_ratio),  h = sqrt(A / aspect_ratio)
+
+    @raises ValueError: wenn aspect_ratio ≤ 0.
+    """
+    if a.aspect_ratio <= 0:
+        raise ValueError(f"aspect_ratio={a.aspect_ratio} must be positive")
+    w = (a.active_area_m2 * a.aspect_ratio) ** 0.5
+    h = (a.active_area_m2 / a.aspect_ratio) ** 0.5
+    return w, h
+
+
 def bpp_outer_dimensions_m(a: StackAssembly) -> tuple[float, float]:
     """
-    Kantenlänge der quadratischen BPP [m, m].
+    BPP-Außenmaße (width, height) [m] = active + 2·frame_width in jeder Richtung.
 
-    = sqrt(active_area) + 2 * gasket.frame_width. Return-Tuple ist (width, height).
-    Rechteckige Stacks sind v0.5-Scope.
+    Bei aspect_ratio=1.0 ist w == h (quadratische BPP); ansonsten rechteckig.
     """
-    edge = a.active_area_m2**0.5 + 2 * a.gasket_spec().frame_width_m
-    return edge, edge
+    aw, ah = active_dimensions_m(a)
+    fw = a.gasket_spec().frame_width_m
+    return aw + 2 * fw, ah + 2 * fw
 
 
 def bpp_resistance_ohm_m2(a: StackAssembly) -> float:
@@ -171,6 +197,82 @@ def bpp_resistance_ohm_m2(a: StackAssembly) -> float:
     """
     bpp = a.bipolar_plate_spec()
     return bpp.bulk_resistivity_ohm_m * bpp.thickness_m
+
+
+# ---------------- Fluid coupling (v0.5) ---------------- #
+
+
+def assembly_pressure_drop(
+    a: StackAssembly,
+    *,
+    current_a: float,
+    temperature_k: float,
+    stoich_ratio: float = 50.0,
+) -> PressureDropResult:
+    """
+    Druckabfall im Flow-Field einer Zelle bei Betriebsbedingungen [Pa].
+
+    Volumenstrom pro Zelle wird aus Stromstärke und Stöchiometrie berechnet
+    (`fluid.stoichiometric_water_flow_m3_s`), anschließend laminar durch das
+    BPP-Flow-Field geleitet (`fluid.pressure_drop`).
+
+    Args:
+        current_a:      Zellstrom [A] (NICHT Stack-Strom — im Stack sind alle
+                        Zellen elektrisch in Serie und sehen denselben I).
+        temperature_k:  Betriebstemperatur [K] für Wasser-Eigenschaften + Stoich.
+        stoich_ratio:   λ = Q_feed / Q_stoich; default 50 (typ. PEM-EC).
+
+    Raises:
+        ValueError: wenn Re > 2000 (turbulent, nicht implementiert in v0.5).
+
+    @ref: siehe src/fluid.py.
+    """
+    bpp = a.bipolar_plate_spec()
+    aw, ah = active_dimensions_m(a)
+    q_cell = stoichiometric_water_flow_m3_s(
+        current_a=current_a,
+        stoich_ratio=stoich_ratio,
+        temperature_k=temperature_k,
+    )
+    return pressure_drop(
+        flow_pattern=bpp.flow_pattern,
+        channel_width_m=bpp.channel_width_m,
+        channel_depth_m=bpp.channel_depth_m,
+        channel_pitch_m=bpp.channel_pitch_m,
+        active_width_m=aw,
+        active_height_m=ah,
+        volumetric_flow_per_cell_m3_s=q_cell,
+        temperature_k=temperature_k,
+    )
+
+
+def assembly_pump_power_w(
+    a: StackAssembly,
+    *,
+    current_a: float,
+    temperature_k: float,
+    stoich_ratio: float = 50.0,
+    eta_pump: float = 0.5,
+) -> float:
+    """
+    Hydraulische Pumpenleistung für den gesamten Stack [W].
+
+    P_pump,stack = N_cells · ΔP_cell · Q_cell / η_pump.
+    (Alle Zellen sind hydraulisch parallel geschaltet, sehen denselben ΔP,
+    erhalten jeweils eigenen Q_cell; Stack-Pumpe liefert Summe.)
+    """
+    res = assembly_pressure_drop(
+        a,
+        current_a=current_a,
+        temperature_k=temperature_k,
+        stoich_ratio=stoich_ratio,
+    )
+    q_cell = stoichiometric_water_flow_m3_s(
+        current_a=current_a,
+        stoich_ratio=stoich_ratio,
+        temperature_k=temperature_k,
+    )
+    return a.n_cells * pump_power_w(res.dp_pa, q_cell, eta_pump)
 
 
 # ---------------- JSON Save/Load ---------------- #
