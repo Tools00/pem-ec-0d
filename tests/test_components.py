@@ -51,9 +51,7 @@ def test_bpp_land_width_positive():
 def test_bpp_flow_pattern_values():
     allowed = {"serpentine", "parallel", "interdigitated"}
     for bpp in BIPOLAR_PLATES.values():
-        assert bpp.flow_pattern in allowed, (
-            f"{bpp.name}: unknown flow_pattern {bpp.flow_pattern}"
-        )
+        assert bpp.flow_pattern in allowed, f"{bpp.name}: unknown flow_pattern {bpp.flow_pattern}"
 
 
 def test_all_presets_have_refs():
