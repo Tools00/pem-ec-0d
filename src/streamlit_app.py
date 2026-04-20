@@ -20,6 +20,23 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src import units as U
+from src.assembly import (
+    StackAssembly,
+    bpp_outer_dimensions_m,
+    bpp_resistance_ohm_m2,
+    from_json,
+    to_json,
+    total_stack_height_m,
+    total_stack_mass_kg,
+)
+from src.components import (
+    bipolar_plate_names,
+    current_collector_names,
+    end_plate_names,
+    gasket_names,
+    open_area_ratio,
+    tie_rod_names,
+)
 from src.electrochemistry import (
     Electrochemistry,
     arrhenius_exchange_current_density,
@@ -39,6 +56,10 @@ from src.materials import (
 )
 from src.stack import Stack
 from src.thermal import E_TN_STANDARD, ThermalModel
+from src.visualization import (
+    draw_bpp_top_view,
+    draw_layer_cross_section,
+)
 
 # ---- Page config ---- #
 st.set_page_config(
@@ -217,8 +238,8 @@ col4.metric("Energy efficiency", f"{eff['eta_energy'] * 100:.1f} %")
 col5.metric("Waste heat", f"{heat['q_stack_kw']:.2f} kW")
 
 # ---------------- Tabs ---------------- #
-tab_pol, tab_stack, tab_thermal, tab_mat, tab_export = st.tabs(
-    ["Polarization", "Stack Analysis", "Thermal", "Materials", "Export"]
+tab_pol, tab_stack, tab_thermal, tab_mat, tab_assembly, tab_export = st.tabs(
+    ["Polarization", "Stack Analysis", "Thermal", "Materials", "Assembly", "Export"]
 )
 
 # ===================== TAB 1: Polarization ===================== #
@@ -562,7 +583,128 @@ with tab_mat:
         )
         st.dataframe(cat_all, width="stretch", hide_index=True)
 
-# ===================== TAB 5: Export ===================== #
+# ===================== TAB 5: Assembly ===================== #
+with tab_assembly:
+    st.markdown("### Stack Assembly Designer")
+    st.caption(
+        "Configure non-MEA components (bipolar plate, end plate, current collector, "
+        "gasket, tie-rod). Geometry is scaled from SI thicknesses; BPP-resistivity "
+        "feeds the ohmic loss in the Polarization tab."
+    )
+
+    a_col1, a_col2 = st.columns([1, 3])
+
+    with a_col1:
+        st.markdown("**Components**")
+        bpp_sel = st.selectbox(
+            "Bipolar plate",
+            bipolar_plate_names(),
+            index=0,
+            key="asm_bpp",
+        )
+        ep_sel = st.selectbox("End plate", end_plate_names(), index=0, key="asm_ep")
+        cc_sel = st.selectbox(
+            "Current collector",
+            current_collector_names(),
+            index=0,
+            key="asm_cc",
+        )
+        gk_sel = st.selectbox("Gasket", gasket_names(), index=0, key="asm_gk")
+        tr_sel = st.selectbox("Tie-rod", tie_rod_names(), index=1, key="asm_tr")
+
+        st.divider()
+        st.markdown("**Load config**")
+        uploaded = st.file_uploader("Load assembly JSON", type=["json"], key="asm_upload")
+
+    assembly = StackAssembly(
+        n_cells=int(n_cells),
+        active_area_m2=area_si,
+        membrane=membrane_sel,
+        anode_catalyst=cat_anode_sel,
+        cathode_catalyst=cat_cathode_sel,
+        anode_gdl=gdl_anode_sel,
+        cathode_gdl=gdl_cathode_sel,
+        bipolar_plate=bpp_sel,
+        end_plate=ep_sel,
+        current_collector=cc_sel,
+        gasket=gk_sel,
+        tie_rod=tr_sel,
+    )
+
+    if uploaded is not None:
+        try:
+            import json as _json
+            import tempfile
+
+            data = _json.loads(uploaded.read().decode("utf-8"))
+            assembly = StackAssembly(**data)
+            st.success(f"Loaded assembly: {data.get('n_cells')} cells, {data.get('membrane')}")
+            _ = tempfile  # appease linters
+        except Exception as err:
+            st.error(f"Could not load assembly JSON: {err}")
+
+    with a_col2:
+        fig_cs = draw_layer_cross_section(assembly, max_visible_cells=6)
+        st.plotly_chart(fig_cs, use_container_width=True)
+
+        fig_top = draw_bpp_top_view(bpp_sel, area_si, gk_sel)
+        st.plotly_chart(fig_top, use_container_width=True)
+
+    st.markdown("### Stack stats")
+    bpp_w_m, _ = bpp_outer_dimensions_m(assembly)
+    stack_h_mm = total_stack_height_m(assembly) * 1000.0
+    stack_m_kg = total_stack_mass_kg(assembly)
+    r_bpp = bpp_resistance_ohm_m2(assembly)
+    oar = open_area_ratio(assembly.bipolar_plate_spec())
+
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("Stack height", f"{stack_h_mm:.1f} mm")
+    k2.metric("Stack mass (approx.)", f"{stack_m_kg:.2f} kg")
+    k3.metric("BPP outer edge", f"{bpp_w_m * 1000.0:.1f} mm")
+    k4.metric("Open-area ratio", f"{oar * 100:.0f} %")
+
+    st.caption(
+        f"Effective r_bpp from assembly: {r_bpp * 1e4:.3f} mΩ·cm² "
+        f"(ρ·t of {assembly.bipolar_plate_spec().material}). Current cell uses the "
+        "CellSpec default; wire-up in a future patch."
+    )
+
+    st.divider()
+    st.markdown("**Save config**")
+    save_buffer = StringIO()
+    import json as _json
+
+    save_buffer.write(
+        _json.dumps(
+            {
+                "n_cells": assembly.n_cells,
+                "active_area_m2": assembly.active_area_m2,
+                "membrane": assembly.membrane,
+                "anode_catalyst": assembly.anode_catalyst,
+                "cathode_catalyst": assembly.cathode_catalyst,
+                "anode_gdl": assembly.anode_gdl,
+                "cathode_gdl": assembly.cathode_gdl,
+                "bipolar_plate": assembly.bipolar_plate,
+                "end_plate": assembly.end_plate,
+                "current_collector": assembly.current_collector,
+                "gasket": assembly.gasket,
+                "tie_rod": assembly.tie_rod,
+                "catalyst_layer_thickness_m": assembly.catalyst_layer_thickness_m,
+            },
+            indent=2,
+        )
+    )
+    st.download_button(
+        label="Download assembly JSON",
+        data=save_buffer.getvalue(),
+        file_name=f"assembly_N{int(n_cells)}_{membrane_sel.replace(' ', '_')}.json",
+        mime="application/json",
+    )
+    # Silence unused imports for linters (to_json/from_json available for external use)
+    _ = (to_json, from_json)
+
+
+# ===================== TAB 6: Export ===================== #
 with tab_export:
     st.markdown("### Export polarization curve")
     export_df = pd.DataFrame(
