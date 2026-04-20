@@ -11,6 +11,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
 - 2. Validation gegen experimentelle Paper-Kurve
 
+## [0.4.0] — 2026-04-20
+
+### Added
+- **Visual Stack Designer** (6. Tab „Assembly") — siehe
+  [ADR 006](docs/adr/006-visual-stack-designer.md):
+  - `src/components.py` — 5 neue frozen Dataclasses (BipolarPlateSpec,
+    EndPlateSpec, CurrentCollectorSpec, GasketSpec, TieRodSpec) mit
+    insgesamt **14 Literatur-referenzierten Presets**
+    (4 BPP, 2 Endplatten, 2 Stromabnehmer, 3 Dichtungen, 3 Tie-Rod-Sets).
+  - `src/assembly.py` — `StackAssembly`-Dataclass aggregiert alle
+    MEA- + Stack-Komponenten, berechnet `per_cell_height`,
+    `total_stack_height`, `total_stack_mass`, `bpp_outer_dimensions`,
+    `bpp_resistance_ohm_m2`. JSON Save/Load via `to_json`/`from_json`.
+  - `src/visualization.py` — Plotly-Zeichenfunktionen:
+    - `draw_layer_cross_section` — maßstabsgetreue Seitenansicht in mm
+      mit Compressed-View ab N > 6 (grauer „… X cells collapsed …"-Block).
+    - `draw_bpp_top_view` — Draufsicht mit Flow-Field-Pattern
+      (serpentine/parallel/interdigitated), Gasket-Rahmen, diagonalen
+      Inlet/Outlet-Ports.
+    - `draw_gasket_outline` — Standalone Gasket-Kontur mit Active-Area-Cutout.
+  - **Assembly-Tab** in der Streamlit-UI — 5 Selectbox-Picker
+    (BPP/EndPlate/CurrentCollector/Gasket/Tie-Rod), Querschnitt +
+    BPP-Top-View, 4 KPI-Metriken (Stack-Höhe, Masse, BPP-Kante,
+    Open-Area-Ratio), JSON Download/Upload.
+- **21 neue Tests** (total 122, alle grün) — `tests/test_components.py` (7),
+  `tests/test_assembly.py` (9), `tests/test_visualization.py` (5).
+
+### Design-Entscheidungen (ADR 006)
+- **Pure Streamlit + Plotly** — kein JS, keine React-Komponente, keine
+  neue Runtime-Abhängigkeit. Alternativen (React/dnd-kit,
+  streamlit-plotly-events, pyvista 3D) dokumentiert verworfen.
+- **r_bpp aus Assembly berechnet + angezeigt, noch nicht in CellSpec gewired** —
+  Wire-up in v0.4.1, um diesen PR klein + reviewbar zu halten.
+- **Rechteckige Stacks bewusst nicht modelliert** (v0.5-Scope).
+- **MEA- und Tie-Rod-Masse in Stack-Masse vernachlässigt** (< 5 % bzw. < 1 %),
+  explizit dokumentierte Näherung.
+
+### References (neu für v0.4)
+- Lettenmeier et al. (2016) Energy Environ. Sci. 9(8), 2569 — Ti-BPP
+- Grigoriev et al. (2009) IJHE 34(14), 5986 — Parallel flow fields
+- Barbir (2012) PEM Fuel Cells, Ch. 4.3 & 6.3 — Graphit-Composite, Endplatten
+- Wang et al. (2011) IJHE 36(16), 10329 — SS-316L als BPP-Material
+- Carmo et al. (2013) IJHE 38(12) §5.1 — PTFE/EPDM/FKM Gaskets
+
 ## [0.3.1] — 2026-04-20
 
 ### Added

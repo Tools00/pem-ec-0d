@@ -17,7 +17,22 @@ with one click.
 
 ---
 
-## What's in it (v0.2)
+## What's in it (v0.4)
+
+### Visual Stack Designer (new in v0.4)
+
+- **Assembly tab** — pick bipolar plate, end plate, current collector, gasket,
+  tie-rod from literature-referenced presets
+- **Plotly cross-section** — to-scale side view of the full stack in mm, with
+  compressed mid-section for N > 6 cells
+- **BPP top view** — flow-field pattern (serpentine / parallel / interdigitated)
+  with gasket frame and diagonal inlet/outlet ports
+- **Stack KPIs** — total height, approximate mass, BPP outer edge, open-area ratio
+- **JSON save / load** of the full assembly configuration
+
+See [ADR 006](docs/adr/006-visual-stack-designer.md) for design rationale.
+
+## What's in it (v0.2 core)
 
 ### Electrochemistry (cell-level)
 

@@ -9,6 +9,7 @@ Run:
 """
 
 import sys
+from dataclasses import asdict
 from io import StringIO
 from pathlib import Path
 
@@ -634,12 +635,10 @@ with tab_assembly:
     if uploaded is not None:
         try:
             import json as _json
-            import tempfile
 
             data = _json.loads(uploaded.read().decode("utf-8"))
             assembly = StackAssembly(**data)
             st.success(f"Loaded assembly: {data.get('n_cells')} cells, {data.get('membrane')}")
-            _ = tempfile  # appease linters
         except Exception as err:
             st.error(f"Could not load assembly JSON: {err}")
 
@@ -671,36 +670,16 @@ with tab_assembly:
 
     st.divider()
     st.markdown("**Save config**")
-    save_buffer = StringIO()
     import json as _json
 
-    save_buffer.write(
-        _json.dumps(
-            {
-                "n_cells": assembly.n_cells,
-                "active_area_m2": assembly.active_area_m2,
-                "membrane": assembly.membrane,
-                "anode_catalyst": assembly.anode_catalyst,
-                "cathode_catalyst": assembly.cathode_catalyst,
-                "anode_gdl": assembly.anode_gdl,
-                "cathode_gdl": assembly.cathode_gdl,
-                "bipolar_plate": assembly.bipolar_plate,
-                "end_plate": assembly.end_plate,
-                "current_collector": assembly.current_collector,
-                "gasket": assembly.gasket,
-                "tie_rod": assembly.tie_rod,
-                "catalyst_layer_thickness_m": assembly.catalyst_layer_thickness_m,
-            },
-            indent=2,
-        )
-    )
     st.download_button(
         label="Download assembly JSON",
-        data=save_buffer.getvalue(),
+        data=_json.dumps(asdict(assembly), indent=2),
         file_name=f"assembly_N{int(n_cells)}_{membrane_sel.replace(' ', '_')}.json",
         mime="application/json",
     )
-    # Silence unused imports for linters (to_json/from_json available for external use)
+    # to_json/from_json sind Public-API für externe Nutzung; hier in der UI
+    # gehen wir über asdict+download_button bzw. file_uploader.
     _ = (to_json, from_json)
 
 
