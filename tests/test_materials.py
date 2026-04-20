@@ -85,3 +85,41 @@ def test_name_helpers_return_nonempty_lists():
 
 def test_membrane_names_match_dict_keys():
     assert set(membrane_names()) == set(MEMBRANES.keys())
+
+
+# ---------------- v0.3.1 additive presets ---------------- #
+
+
+def test_v031_new_membranes_present():
+    for name in (
+        "Gore-Select M820 (reinforced)",
+        "Nafion XL (reinforced)",
+        "Aquivion R79-02S",
+    ):
+        assert name in MEMBRANES, f"missing v0.3.1 membrane: {name}"
+        m = MEMBRANES[name]
+        assert m.thickness_m > 0 and m.conductivity_sm > 0
+        assert m.ref, f"{name}: reference required"
+
+
+def test_v031_new_catalysts_present():
+    for name in (
+        "Ir-black (Rozain 2016)",
+        "IrOx-ATO (Sb-doped SnO2 support)",
+        "Heraeus H2EL-IrO (commercial 2023)",
+    ):
+        assert name in CATALYSTS_ANODE, f"missing v0.3.1 anode catalyst: {name}"
+        assert CATALYSTS_ANODE[name].activation_energy_j_mol > 0
+    for name in ("Pt/C ultra-low (0.05 mg/cm\u00b2)", "PtRu/C (startup-tolerant)"):
+        assert name in CATALYSTS_CATHODE, f"missing v0.3.1 cathode catalyst: {name}"
+        assert CATALYSTS_CATHODE[name].activation_energy_j_mol > 0
+
+
+def test_v031_new_gdls_present():
+    for name in (
+        "Ti sintered powder (Mott, 0.25 mm)",
+        "Au-coated Ti sintered (0.25 mm)",
+    ):
+        assert name in GDL_ANODE, f"missing v0.3.1 anode GDL: {name}"
+        g = GDL_ANODE[name]
+        assert g.thickness_m > 0 and 0 < g.porosity < 1

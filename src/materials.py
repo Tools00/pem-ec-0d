@@ -90,6 +90,33 @@ MEMBRANES: dict[str, MembraneSpec] = {
         ref="FumaTech Datasheet (2020)",
         valid_temp_k=(298.15, 373.15),
     ),
+    "Gore-Select M820 (reinforced)": MembraneSpec(
+        name="Gore-Select M820 (reinforced)",
+        thickness_m=18e-6,
+        conductivity_sm=10.0,
+        water_uptake=22.0,
+        ewt_g_mol=800.0,
+        ref="W. L. Gore PEM Water Electrolysis Datasheet (2024); Goswami et al. (2023) J. Power Sources 578 — ePTFE-reinforced, industrial EC-stack standard",
+        valid_temp_k=(298.15, 363.15),
+    ),
+    "Nafion XL (reinforced)": MembraneSpec(
+        name="Nafion XL (reinforced)",
+        thickness_m=27.5e-6,
+        conductivity_sm=9.0,
+        water_uptake=22.0,
+        ewt_g_mol=1100.0,
+        ref="Chemours Nafion XL Datasheet (2023); Shi et al. (2016) J. Membrane Sci. 517 — ePTFE-reinforced variant",
+        valid_temp_k=(298.15, 363.15),
+    ),
+    "Aquivion R79-02S": MembraneSpec(
+        name="Aquivion R79-02S",
+        thickness_m=50e-6,
+        conductivity_sm=15.0,
+        water_uptake=20.0,
+        ewt_g_mol=790.0,
+        ref="Solvay Specialty Polymers Datasheet (2021); Skulimowska et al. (2014) IJHE 39 — short-side-chain PFSA, next-gen",
+        valid_temp_k=(298.15, 393.15),
+    ),
 }
 
 
@@ -148,6 +175,33 @@ CATALYSTS_ANODE: dict[str, CatalystSpec] = {
         activation_energy_j_mol=56_000.0,
         ref="Siracusano et al. (2017), Appl. Catal. B 219; E_a: support-stabilized IrO₂",
     ),
+    "Ir-black (Rozain 2016)": CatalystSpec(
+        name="Ir-black (Rozain 2016)",
+        side="anode",
+        j0_a_m2=20.0,
+        alpha=0.5,
+        loading_mg_cm2=0.5,
+        activation_energy_j_mol=55_000.0,
+        ref="Rozain et al. (2016) ACS Catal. 6(3), 1949–1957 — unsupported Ir, low-loading reference",
+    ),
+    "IrOx-ATO (Sb-doped SnO2 support)": CatalystSpec(
+        name="IrOx-ATO (Sb-doped SnO2 support)",
+        side="anode",
+        j0_a_m2=15.0,
+        alpha=0.5,
+        loading_mg_cm2=0.3,
+        activation_energy_j_mol=58_000.0,
+        ref="Oh et al. (2016) JACS 138, 12552; Liu et al. (2022) Nat. Catal. 5 — replaces IrO2-TiO2 as modern support",
+    ),
+    "Heraeus H2EL-IrO (commercial 2023)": CatalystSpec(
+        name="Heraeus H2EL-IrO (commercial 2023)",
+        side="anode",
+        j0_a_m2=30.0,
+        alpha=0.5,
+        loading_mg_cm2=0.6,
+        activation_energy_j_mol=53_000.0,
+        ref="Heraeus Precious Metals Product Release (2023) — reduced-Ir commercial catalyst, ~0.3 gIr/kW",
+    ),
 }
 
 
@@ -178,6 +232,24 @@ CATALYSTS_CATHODE: dict[str, CatalystSpec] = {
         loading_mg_cm2=0.3,
         activation_energy_j_mol=22_000.0,
         ref="Huang et al. (2015), Science 348(6240); E_a: Pt-alloy HER",
+    ),
+    "Pt/C ultra-low (0.05 mg/cm²)": CatalystSpec(
+        name="Pt/C ultra-low (0.05 mg/cm²)",
+        side="cathode",
+        j0_a_m2=0.9e3,
+        alpha=0.5,
+        loading_mg_cm2=0.05,
+        activation_energy_j_mol=25_000.0,
+        ref="Bernt et al. (2020) J. Electrochem. Soc. 167 — HER is not PGM-limited, loading can drop 10×",
+    ),
+    "PtRu/C (startup-tolerant)": CatalystSpec(
+        name="PtRu/C (startup-tolerant)",
+        side="cathode",
+        j0_a_m2=1.2e3,
+        alpha=0.5,
+        loading_mg_cm2=0.15,
+        activation_energy_j_mol=23_000.0,
+        ref="Gazdzicki et al. (2020) Appl. Catal. B 265 — reverse-current robustness at SU/SD",
     ),
 }
 
@@ -213,6 +285,22 @@ GDL_ANODE: dict[str, GDLSpec] = {
         porosity=0.6,
         thickness_m=0.5e-3,
         ref="Lettenmeier et al. (2016), Energy Environ. Sci. 9(8)",
+    ),
+    "Ti sintered powder (Mott, 0.25 mm)": GDLSpec(
+        name="Ti sintered powder (Mott, 0.25 mm)",
+        side="anode",
+        r_specific_ohm_m2=8e-6,
+        porosity=0.4,
+        thickness_m=0.25e-3,
+        ref="Mott Corp. PTL Datasheet (2023); Tao et al. (2024) SusMat — sintered Ti powder, IFC ~80 mΩ·cm² uncoated",
+    ),
+    "Au-coated Ti sintered (0.25 mm)": GDLSpec(
+        name="Au-coated Ti sintered (0.25 mm)",
+        side="anode",
+        r_specific_ohm_m2=5e-7,
+        porosity=0.4,
+        thickness_m=0.25e-3,
+        ref="Liu et al. (2018) JES 165(13); RSC Energy Advances (2026) D5YA00274E — Au coating outperforms Pt for long-term durability",
     ),
 }
 

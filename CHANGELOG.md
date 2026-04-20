@@ -11,6 +11,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
 - 2. Validation gegen experimentelle Paper-Kurve
 
+## [0.3.1] — 2026-04-20
+
+### Added
+- **Materials refresh** (`src/materials.py`) — 10 neue Presets, rein additiv
+  (keine bestehenden Presets oder Felder geändert, keine Tests gebrochen):
+  - **Membranen (+3):**
+    - Gore-Select M820 (reinforced, 18 μm) — ePTFE-verstärkt,
+      Industrie-Standard moderner EC-Stacks
+    - Nafion XL (reinforced, 27.5 μm) — ePTFE-verstärkte Nafion-Variante
+    - Aquivion R79-02S (50 μm, EW 790) — Short-side-chain PFSA
+  - **Anoden-Katalysatoren (+3):**
+    - Ir-black (Rozain 2016, 0.5 mg/cm²) — Low-loading Referenz
+    - IrOx-ATO (Sb-doped SnO₂ Support, 0.3 mg/cm²) — moderner Ersatz für IrO₂-TiO₂
+    - Heraeus H2EL-IrO (commercial 2023, 0.6 mg/cm²) — reduzierter Ir-Einsatz
+  - **Kathoden-Katalysatoren (+2):**
+    - Pt/C ultra-low (0.05 mg/cm²) — HER nicht PGM-limitiert
+    - PtRu/C (startup-tolerant, 0.15 mg/cm²) — SU/SD-robust
+  - **GDLs/PTLs (+2, anodenseitig):**
+    - Ti sintered powder (Mott, 0.25 mm) — kommerzieller Sinter-PTL
+    - Au-coated Ti sintered (0.25 mm) — Au-Coating schlägt Pt in Langzeit
+- **3 neue Tests** (total 101, alle grün): presence + basic sanity der neuen Presets
+
+### References
+- Goswami et al. (2023) J. Power Sources 578 — Gore M820
+- Rozain et al. (2016) ACS Catal. 6(3), 1949–1957 — Ir-black low-loading
+- Oh et al. (2016) JACS 138; Liu et al. (2022) Nat. Catal. 5 — IrOx-ATO
+- Bernt et al. (2020) J. Electrochem. Soc. 167 — Pt/C ultra-low
+- Gazdzicki et al. (2020) Appl. Catal. B 265 — PtRu/C SU/SD
+- Tao et al. (2024) SusMat; Liu et al. (2018) JES 165(13);
+  RSC Energy Advances (2026) D5YA00274E — Ti sintered PTL, Au-coating
+
 ## [0.3.0] — 2026-04-20
 
 ### Added
@@ -126,7 +157,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Keine Multi-phase Flow
 - Nur 1 Validation-Datensatz (analytisch, noch nicht gegen Experiment)
 
-[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Tools00/pem-ec-designer/releases/tag/v0.1.0
