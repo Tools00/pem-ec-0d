@@ -113,6 +113,16 @@ def test_bpp_resistance_positive_and_monotone_in_thickness():
     assert r_thin > 0 and r_thick > r_thin
 
 
+def test_bpp_resistance_wires_into_electrochemistry_r_bpp():
+    """v0.4.1 wire-up: r_bpp aus Assembly landet 1:1 in Electrochemistry.r_bpp."""
+    from src.electrochemistry import Electrochemistry
+
+    a = default_assembly()
+    r_si = bpp_resistance_ohm_m2(a)  # Ω·m²
+    cell = Electrochemistry.from_engineering(r_bpp_ohm_cm2=r_si * 1e4)
+    assert cell.r_bpp == pytest.approx(r_si, rel=1e-12)
+
+
 # ---------------- JSON Roundtrip ---------------- #
 
 

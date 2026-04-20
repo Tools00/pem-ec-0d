@@ -31,6 +31,7 @@ from src.assembly import (
     total_stack_mass_kg,
 )
 from src.components import (
+    BIPOLAR_PLATES,
     bipolar_plate_names,
     current_collector_names,
     end_plate_names,
@@ -119,6 +120,10 @@ gdl_cathode_sel = st.sidebar.selectbox("GDL cathode", cathode_gdl_names(), index
 gdl_a = GDL_ANODE[gdl_anode_sel]
 gdl_c = GDL_CATHODE[gdl_cathode_sel]
 
+bpp_sel = st.sidebar.selectbox("Bipolar plate", bipolar_plate_names(), index=0, key="bpp_sel")
+_bpp_spec = BIPOLAR_PLATES[bpp_sel]
+r_bpp_ohm_m2 = _bpp_spec.bulk_resistivity_ohm_m * _bpp_spec.thickness_m
+
 # ---------------- Sidebar: Operating conditions ---------------- #
 st.sidebar.header("Operating conditions")
 t_c = st.sidebar.slider("Temperature [°C]", 25.0, 120.0, 80.0, 1.0)
@@ -205,6 +210,7 @@ cell = Electrochemistry.from_engineering(
     alpha_cathode=cat_cathode.alpha,
     r_gdl_anode_ohm_cm2=gdl_a.r_specific_ohm_m2 * 1e4,
     r_gdl_cathode_ohm_cm2=gdl_c.r_specific_ohm_m2 * 1e4,
+    r_bpp_ohm_cm2=r_bpp_ohm_m2 * 1e4,
 )
 
 area_si = U.cm2_to_m2(active_area_cm2)
@@ -597,11 +603,8 @@ with tab_assembly:
 
     with a_col1:
         st.markdown("**Components**")
-        bpp_sel = st.selectbox(
-            "Bipolar plate",
-            bipolar_plate_names(),
-            index=0,
-            key="asm_bpp",
+        st.caption(
+            f"Bipolar plate: **{bpp_sel}** (from sidebar — drives ohmic loss in Polarization tab)"
         )
         ep_sel = st.selectbox("End plate", end_plate_names(), index=0, key="asm_ep")
         cc_sel = st.selectbox(
@@ -664,8 +667,7 @@ with tab_assembly:
 
     st.caption(
         f"Effective r_bpp from assembly: {r_bpp * 1e4:.3f} mΩ·cm² "
-        f"(ρ·t of {assembly.bipolar_plate_spec().material}). Current cell uses the "
-        "CellSpec default; wire-up in a future patch."
+        f"(ρ·t of {assembly.bipolar_plate_spec().material}) — active in Polarization tab."
     )
 
     st.divider()

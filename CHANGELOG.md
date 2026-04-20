@@ -11,6 +11,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 - Vergleichs-Modus (2 Zellen/Stacks nebeneinander)
 - 2. Validation gegen experimentelle Paper-Kurve
 
+## [0.4.1] — 2026-04-20
+
+### Changed
+- **BPP → Ohmic-loss wire-up** (`src/streamlit_app.py`, `src/assembly.py`):
+  - Bipolar-plate-Picker wandert in die Sidebar (Single Source of Truth für
+    Polarization- und Assembly-Tab).
+  - `r_bpp = ρ · t` der gewählten BPP fließt jetzt in
+    `Electrochemistry.from_engineering(..., r_bpp_ohm_cm2=...)` und damit in
+    die Polarisationskurve, statt den alten CellSpec-Default zu verwenden.
+  - Beispiel: Graphit-Composite-BPP (3 mm, ρ=1.3e-4 Ω·m) erzeugt ~0.39 mΩ·cm²
+    Beitrag vs. ~0.086 µΩ·cm² bei Ti-BPP (2 mm, ρ=4.3e-7 Ω·m) — im
+    Ohm-Term jetzt sichtbar.
+- Assembly-Tab zeigt gewählte BPP als Caption (aus Sidebar), lokaler
+  Selectbox entfernt. Caption im Stack-Stats-Bereich: "active in Polarization tab".
+
+### Added
+- **1 neuer Test** (total 123): `test_bpp_resistance_wires_into_electrochemistry_r_bpp`
+  verifiziert, dass `bpp_resistance_ohm_m2(a)` → Electrochemistry.r_bpp 1:1
+  übertragen wird.
+
+### Docs
+- ADR-006: Tabellen-Zeile „r_bpp-Coupling aktiv?" aktualisiert
+  (von „Display-only" → „Ja, wired"), Consequences-Abschnitt entsprechend angepasst.
+
 ## [0.4.0] — 2026-04-20
 
 ### Added

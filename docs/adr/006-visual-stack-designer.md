@@ -54,7 +54,7 @@ Wir bauen einen **Visual Stack Designer** als 6. Tab der App. Technisch:
 | Polarisationskurve im Assembly-Tab? | Nein | Verhindert Tab-Überfrachtung, Polarization-Tab bleibt die kanonische Ansicht (User, 2026-04-20). |
 | N=200 rendern? | Compressed-View: 3+collapsed+3 Zellen | Plotly bleibt < 80 Shapes, Interaktivität erhalten. |
 | BPP-Form | Quadratisch (sqrt(A) + 2·frame) | Rechteckige Stacks brauchen zwei Dimensionen → v0.5-Scope. |
-| r_bpp-Coupling aktiv? | Berechnet + angezeigt, **noch nicht** in CellSpec gewired | Dieser PR soll klein + reviewbar bleiben; Wire-up ist v0.4.1. |
+| r_bpp-Coupling aktiv? | **Ja — wired in v0.4.1**: BPP-Picker sitzt in der Sidebar, `r_bpp = ρ·t` fließt in `Electrochemistry.from_engineering`. | Single source of truth für Polarisation + Assembly. |
 
 ## Consequences
 
@@ -68,8 +68,9 @@ Wir bauen einen **Visual Stack Designer** als 6. Tab der App. Technisch:
 
 ### Negative / offen
 
-- r_bpp aus Assembly ist noch nicht aktiv im Polarization-Tab (Display-only).
-  Wire-up in v0.4.1.
+- ~~r_bpp aus Assembly ist noch nicht aktiv im Polarization-Tab.~~
+  **Erledigt in v0.4.1:** BPP-Picker in Sidebar, `r_bpp = ρ·t` fließt in
+  `Electrochemistry.from_engineering`.
 - Tie-rod-Torque, flow_pattern-Druckabfall, gasket-compression-modulus haben
   keinen Physik-Konsumer in v0.4 — sie stehen als Hook für v0.5 (ΔP-Modell)
   bzw. v1.0 (Dichtkraft-FEM).
