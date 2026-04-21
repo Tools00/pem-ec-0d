@@ -19,8 +19,8 @@ Detailed setup instructions for development and local use.
 
 ```bash
 # Clone
-git clone https://github.com/Tools00/pem-ec-designer.git
-cd pem-ec-designer
+git clone https://github.com/Tools00/pem-ec-0d.git
+cd pem-ec-0d
 
 # Virtual environment
 python -m venv venv
@@ -46,8 +46,8 @@ pytest tests/ -v
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone
-git clone https://github.com/Tools00/pem-ec-designer.git
-cd pem-ec-designer
+git clone https://github.com/Tools00/pem-ec-0d.git
+cd pem-ec-0d
 
 # Create env and install from pyproject.toml
 uv sync
@@ -158,7 +158,7 @@ Quick version:
 ## Updating
 
 ```bash
-cd pem-ec-designer
+cd pem-ec-0d
 git pull
 source venv/bin/activate
 pip install -r requirements.txt --upgrade

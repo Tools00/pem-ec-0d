@@ -23,8 +23,8 @@ please read this before opening a PR.
 ## Dev setup
 
 ```bash
-git clone https://github.com/Tools00/pem-ec-designer.git
-cd pem-ec-designer
+git clone https://github.com/Tools00/pem-ec-0d.git
+cd pem-ec-0d
 python -m venv venv
 source venv/bin/activate
 pip install -e ".[dev]"

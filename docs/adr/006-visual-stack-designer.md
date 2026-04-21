@@ -2,7 +2,7 @@
 
 **Status:** Accepted — implementiert in v0.4
 **Date:** 2026-04-20
-**Scope:** Erweiterung des pem-ec-designer um einen visuellen
+**Scope:** Erweiterung des pem-ec-0d um einen visuellen
 Stack-Konfigurator (Bauteil-Picker + maßstabsgetreue Geometrie-Vorschau)
 innerhalb der bestehenden Streamlit-App.
 

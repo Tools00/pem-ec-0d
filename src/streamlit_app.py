@@ -1,5 +1,5 @@
 """
-Streamlit UI for pem-ec-designer.
+Streamlit UI for pem-ec-0d.
 
 UI-Schicht: display in engineering units (°C, bar, A/cm², …). Intern
 läuft alles in SI über src/electrochemistry.py + src/units.py.
@@ -878,6 +878,6 @@ with tab_export:
 # ---------------- Footer ---------------- #
 st.divider()
 st.caption(
-    "pem-ec-designer v0.2 — MIT License · 78 tests passing · "
+    "pem-ec-0d v0.2 — MIT License · 78 tests passing · "
     "0D steady-state model · Stack + Thermal-0D + Material-Presets."
 )

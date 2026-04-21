@@ -1,6 +1,6 @@
 # PEM-EC Designer
 
-[![CI](https://github.com/Tools00/pem-ec-designer/actions/workflows/ci.yml/badge.svg)](https://github.com/Tools00/pem-ec-designer/actions/workflows/ci.yml)
+[![CI](https://github.com/Tools00/pem-ec-0d/actions/workflows/ci.yml/badge.svg)](https://github.com/Tools00/pem-ec-0d/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://github.com/astral-sh/ruff)
@@ -142,7 +142,7 @@ All equations referenced in `docs/theory/` and in-code `@ref:` annotations.
 ### Install
 
 ```bash
-cd pem-ec-designer
+cd pem-ec-0d
 python -m venv venv
 source venv/bin/activate    # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -209,7 +209,7 @@ pytest tests/ -v
 ## Project Structure
 
 ```
-pem-ec-designer/
+pem-ec-0d/
 ├── src/
 │   ├── constants.py        CODATA 2018 constants (R, F, E₀, ΔH, LHV)
 │   ├── units.py            SI ↔ engineering unit conversion
@@ -299,7 +299,7 @@ MIT — see [LICENSE](LICENSE).
 ## Author
 
 Abed Qadi — Simulation Engineer.
-Issues, questions, collaborations → [open an issue on GitHub](https://github.com/Tools00/pem-ec-designer/issues).
+Issues, questions, collaborations → [open an issue on GitHub](https://github.com/Tools00/pem-ec-0d/issues).
 
 ---
 

@@ -1,9 +1,20 @@
 # Changelog
 
-All notable changes to `pem-ec-designer` are documented here.
+All notable changes to `pem-ec-0d` are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
+
+## [0.6.0] — 2026-04-21
+
+v0.6 friert das 0D-Referenzmodell ein. Exploded-View für Querschnitts-
+Visualisierung, Meta-Dokumentation auf Workspace-Ebene zentralisiert,
+Repo-Rename `pem-ec-designer` → `pem-ec-0d` um den Namen
+`pem-ec-designer` für das Nachfolgeprojekt (CAD/3D-Designer) freizugeben.
+
+### Changed
+- **chore: rename project to `pem-ec-0d`** — Paket, Pfade, Docs, CI-Targets.
+  `pem-ec-designer` ist ab sofort für Projekt 2 reserviert.
 
 ### Added (v0.6a — exploded-view slider)
 - **`draw_layer_cross_section(..., explosion_mm=0.0)`**: neuer optionaler
@@ -20,8 +31,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   Workspace-Docs (siehe unten).
 
 ### Docs — Meta (verschoben auf Workspace-Ebene)
-- **`Simulation-tools/docs/lessons/pem-ec-designer.md`**: Ehrliche Chronik aller Entscheidungen,
-  Strukturfehler und ihrer Ursachen aus pem-ec-designer v0.1–v0.6.
+- **`Simulation-tools/docs/lessons/pem-ec-0d.md`**: Ehrliche Chronik aller Entscheidungen,
+  Strukturfehler und ihrer Ursachen aus pem-ec-0d v0.1–v0.6.
   Fünf dokumentierte Strukturfehler mit Root-Cause-Analyse:
   Framework ohne Trade-off-Analyse, Validation als Feature-Item,
   Visualisierung ohne Ziel-State, Preset-System zu spät geplant,
@@ -349,8 +360,8 @@ Targets für v0.6).
 - Keine Multi-phase Flow
 - Nur 1 Validation-Datensatz (analytisch, noch nicht gegen Experiment)
 
-[Unreleased]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.1...HEAD
-[0.3.1]: https://github.com/Tools00/pem-ec-designer/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/Tools00/pem-ec-designer/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/Tools00/pem-ec-designer/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Tools00/pem-ec-0d/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Tools00/pem-ec-0d/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/Tools00/pem-ec-0d/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Tools00/pem-ec-0d/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Tools00/pem-ec-0d/releases/tag/v0.1.0

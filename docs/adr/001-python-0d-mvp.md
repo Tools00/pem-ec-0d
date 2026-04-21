@@ -2,11 +2,11 @@
 
 **Status:** Accepted
 **Date:** 2026-04-19
-**Context:** pem-ec-designer v0.1 Scope-Festlegung
+**Context:** pem-ec-0d v0.1 Scope-Festlegung
 
 ## Kontext
 
-Entscheidung über den Tech-Stack und die Modellierungs-Tiefe für das MVP (v0.1) von pem-ec-designer.
+Entscheidung über den Tech-Stack und die Modellierungs-Tiefe für das MVP (v0.1) von pem-ec-0d.
 
 ## Alternativen
 

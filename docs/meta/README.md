@@ -5,8 +5,8 @@ in diesem Projekt, sondern **eine Ebene höher** im gemeinsamen
 Workspace-Ordner, damit sie für alle Simulations-Projekte nutzbar sind:
 
 - **Projekt-spezifische Lessons:**
-  `../../../docs/lessons/pem-ec-designer.md`
-  (Absolut: `Simulation-tools/docs/lessons/pem-ec-designer.md`)
+  `../../../docs/lessons/pem-ec-0d.md`
+  (Absolut: `Simulation-tools/docs/lessons/pem-ec-0d.md`)
 
 - **Allgemeines Framework für neue Simulations-Projekte:**
   `../../../docs/simulation-project-framework.md`
@@ -23,6 +23,6 @@ das Framework zur lebenden Referenz.
 
 1. Beim Start von Projekt 2: erst `simulation-project-framework.md`
    durchgehen (Pflichtfragen, Framework-Auswahl, Layer-Prinzipien).
-2. Lessons-Datei(en) relevanter Vorprojekte lesen — hier: `pem-ec-designer.md`.
+2. Lessons-Datei(en) relevanter Vorprojekte lesen — hier: `pem-ec-0d.md`.
 3. Eigene `lessons/<projekt-2>.md` bei Projektende schreiben.
 4. Wiederkehrende Muster ins Framework-Dokument zurück-destillieren.

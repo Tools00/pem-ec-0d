@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pem-ec-designer"
+name = "pem-ec-0d"
 version = "0.2.0"
 description = "Interactive PEM water-electrolysis cell & stack designer — physics-based, 0D, Streamlit UI."
 readme = "README.md"
@@ -45,10 +45,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Tools00/pem-ec-designer"
-Repository = "https://github.com/Tools00/pem-ec-designer"
-Issues = "https://github.com/Tools00/pem-ec-designer/issues"
-Changelog = "https://github.com/Tools00/pem-ec-designer/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Tools00/pem-ec-0d"
+Repository = "https://github.com/Tools00/pem-ec-0d"
+Issues = "https://github.com/Tools00/pem-ec-0d/issues"
+Changelog = "https://github.com/Tools00/pem-ec-0d/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]
