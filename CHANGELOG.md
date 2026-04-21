@@ -5,6 +5,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
+### Docs
+- **`docs/meta/lessons-learned.md`**: Ehrliche Chronik aller Entscheidungen,
+  Strukturfehler und ihrer Ursachen aus pem-ec-designer v0.1–v0.6.
+  Fünf dokumentierte Strukturfehler mit Root-Cause-Analyse:
+  Framework ohne Trade-off-Analyse, Validation als Feature-Item,
+  Visualisierung ohne Ziel-State, Preset-System zu spät geplant,
+  fehlende Ziel-Nutzer-Definition.
+- **`docs/meta/simulation-project-framework.md`**: Allgemeines Framework
+  für zukünftige Simulations-Projekte, direkt anwendbar.
+  Enthält: 8 Pflichtfragen vor erstem Commit, Framework-Auswahlmatrix,
+  Architektur-Prinzipien (Layer-Trennung, SI-Disziplin, Preset-System,
+  Literatur-Referenzierung), Validierungs-Framework (Strict-Xfail-Strategie,
+  Gate-Modell), Dokumentations-Framework, Fehler-Abwehr-Tabelle,
+  Projekt-Start-Checkliste.
+
 ## [0.5.0] — 2026-04-21
 
 Phases 1-3 abgeschlossen: Fluid-Modul + Pumpen-Kopplung, rechteckige
