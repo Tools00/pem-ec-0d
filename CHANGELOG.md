@@ -5,20 +5,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
-### Docs
-- **`docs/meta/lessons-learned.md`**: Ehrliche Chronik aller Entscheidungen,
+### Added (v0.6a — exploded-view slider)
+- **`draw_layer_cross_section(..., explosion_mm=0.0)`**: neuer optionaler
+  Parameter in `src/visualization.py`. 0.0 = assembled (v0.5-Verhalten
+  unverändert). > 0.0 = Luft-Gap nach jedem Layer, gestrichelte graue
+  Guide-Lines zwischen Layer-Nachbarn. Layer-Dicken bleiben maßstabsgetreu.
+- **Streamlit Assembly-Tab**: Slider „Exploded view — gap between layers
+  [mm]" über dem Querschnitt-Chart, 0…5 mm in 0.1er-Schritten.
+- **2 neue Tests** (163 + 2 xfail): `test_cross_section_exploded_view_grows_extent`,
+  `test_cross_section_explosion_negative_raises`.
+- **Scope-Entscheidung:** kein v0.6b (Isometrische Pseudo-3D) und kein
+  pyvista/STL-Import in diesem Projekt. Weitergehende 3D-/CAD-Visualisierung
+  gehört ins Nachfolgeprojekt mit bewusster Framework-Wahl. Rationale in
+  Workspace-Docs (siehe unten).
+
+### Docs — Meta (verschoben auf Workspace-Ebene)
+- **`Simulation-tools/docs/lessons/pem-ec-designer.md`**: Ehrliche Chronik aller Entscheidungen,
   Strukturfehler und ihrer Ursachen aus pem-ec-designer v0.1–v0.6.
   Fünf dokumentierte Strukturfehler mit Root-Cause-Analyse:
   Framework ohne Trade-off-Analyse, Validation als Feature-Item,
   Visualisierung ohne Ziel-State, Preset-System zu spät geplant,
   fehlende Ziel-Nutzer-Definition.
-- **`docs/meta/simulation-project-framework.md`**: Allgemeines Framework
+- **`Simulation-tools/docs/simulation-project-framework.md`**: Allgemeines Framework
   für zukünftige Simulations-Projekte, direkt anwendbar.
   Enthält: 8 Pflichtfragen vor erstem Commit, Framework-Auswahlmatrix,
   Architektur-Prinzipien (Layer-Trennung, SI-Disziplin, Preset-System,
   Literatur-Referenzierung), Validierungs-Framework (Strict-Xfail-Strategie,
   Gate-Modell), Dokumentations-Framework, Fehler-Abwehr-Tabelle,
   Projekt-Start-Checkliste.
+- **`docs/meta/README.md`** (im Projekt): Pointer auf die Workspace-Docs.
+  Die eigentlichen Inhalte liegen eine Ebene höher, damit Nachfolgeprojekte
+  direkt davon lernen. Workspace-CLAUDE.md + README reflektieren die
+  neue Regel „Code bleibt im Projekt, Lehren werden zentralisiert".
 
 ## [0.5.0] — 2026-04-21
 
