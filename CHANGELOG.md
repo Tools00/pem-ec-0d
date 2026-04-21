@@ -48,6 +48,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   statt Fit, Plan für v0.6-Preset-System (`IrO2_generic` vs
   `IrO2_TiO2_Umicore_Elyst_Ir75`).
 
+### Added (v0.5 Phase 3 — Zimmer 2026 statistical validation)
+- **Validation-Dataset** `tests/data/zimmer_2026_fig1c.csv`: 5 Benchmark-Punkte
+  aus Zimmer et al. (2026) *J. Electrochem. Soc.* 173, 024503, Fig. 1c
+  (gefiltert auf Nafion N115 + 80 °C, aggregiert über >127 peer-reviewed
+  Publikationen 2006-2024). Je Punkt: Mittelwert, σ, [min, max] der
+  Literatur-Zell-Spannung bei j ∈ {0.2, 0.5, 1.0, 1.5, 2.0} A/cm². Open
+  Access (CC-BY 4.0).
+- **Validation-Test** `tests/test_validation_zimmer2026.py` mit drei Tests:
+  - Dataset-Sanity (Load, Monotonie, σ > 0, min < mean < max) — PASS.
+  - **Envelope-Test**: Model-Vorhersage bei jedem Benchmark-j innerhalb
+    [E_min, E_max] — **PASS**. Zero-Fit-Model ist literatur-konsistent, kein
+    struktureller Outlier.
+  - ±1σ-Band-Test — **strict xfail** (4/5 Punkten außerhalb, Bias +175 mV,
+    RMSE vs Mean 210 mV). Konsistent mit Bernt-Overshoot: selbe
+    Wurzelursache (Carmo 2013 generic-commercial defaults).
+- **Neues Doc** `docs/validation/zimmer2026_v0.5.md`: Warum statistische
+  Validation > Single-Paper-RMSE (Zimmer-Zitat: σ oft > 500 mV, max-Spread
+  bis 1.5 V), Interpretation der ±σ-Abweichung, v0.6-Pfad (Katalysator- +
+  Membran- + Kontakt-Preset-Systeme).
+- **Cross-Referenz** in `docs/validation/bernt2020_v0.5.md`: neuer Abschnitt
+  „Context from Zimmer 2026 — why single-paper RMSE is fraught" macht die
+  510-mV-Bernt-Abweichung durch Zimmer's Literatur-Varianz statistisch
+  einordbar.
+
 ### Planned (next, v0.5 release)
 - ADR-007 für v0.5-Architektur-Entscheidungen
 - v0.5.0 Release-Commit + README-Update

@@ -1,0 +1,18 @@
+# Zimmer et al. 2026, J. Electrochem. Soc. 173, 024503 — Fig. 1c
+# Filtered PEMWE literature: Nafion N115 membrane + 80 C operating temperature.
+# Mean and spread across >127 peer-reviewed publications, 2006-2024.
+# Digitized by visual inspection of Fig. 1c (red marker points + std-dev band
+# + min/max band). Accuracy +/-15 mV on mean, +/-20 mV on band limits.
+#
+# Columns:
+#   j_A_cm2  - current density, A/cm^2 (the 5 benchmark points Zimmer reports)
+#   E_mean_V - mean cell voltage across filtered studies, V
+#   E_std_V  - 1-sigma standard deviation of cell voltage, V
+#   E_min_V  - minimum observed cell voltage (light-blue band lower edge), V
+#   E_max_V  - maximum observed cell voltage (light-blue band upper edge), V
+j_A_cm2,E_mean_V,E_std_V,E_min_V,E_max_V
+0.2,1.58,0.05,1.45,1.75
+0.5,1.68,0.07,1.50,1.90
+1.0,1.78,0.08,1.55,2.10
+1.5,1.85,0.10,1.60,2.25
+2.0,1.90,0.12,1.65,2.40

@@ -43,6 +43,21 @@ Residual growth is monotonic with j:
        10.00         1.900         3.333     +1433 mV
 ```
 
+## Context from Zimmer 2026 — why single-paper RMSE is fraught
+
+Zimmer et al. (2026) *J. Electrochem. Soc.* 173, 024503 performed a
+data-mining study on 127 PEMWE publications and report that
+
+> "cell voltages reported at the same current density can vary by as much as
+> 1.5 V, with standard deviations often exceeding 500 mV"
+
+A 510 mV RMSE between a generic zero-fit model and one specific paper is
+therefore **within the literature's own variance**. This doesn't excuse the
+model — it just says that calibration must target an *average* or an
+*envelope*, not a single paper. See
+[`docs/validation/zimmer2026_v0.5.md`](zimmer2026_v0.5.md) for the
+envelope-based statistical validation that passes at v0.5.
+
 ## Why the RMSE is 510 mV — diagnosis
 
 Two dominant causes, both structural in the defaults rather than bugs in the physics:
