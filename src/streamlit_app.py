@@ -667,7 +667,20 @@ with tab_assembly:
             st.error(f"Could not load assembly JSON: {err}")
 
     with a_col2:
-        fig_cs = draw_layer_cross_section(assembly, max_visible_cells=6)
+        explosion_mm = st.slider(
+            "Exploded view — gap between layers [mm]",
+            min_value=0.0,
+            max_value=5.0,
+            value=0.0,
+            step=0.1,
+            help=(
+                "0 = assembled stack (real proportions). > 0 spreads every "
+                "layer apart by the given gap. Dotted lines show the adjacency."
+            ),
+        )
+        fig_cs = draw_layer_cross_section(
+            assembly, max_visible_cells=6, explosion_mm=float(explosion_mm)
+        )
         st.plotly_chart(fig_cs, use_container_width=True)
 
         fig_top = draw_bpp_top_view(bpp_sel, area_si, gk_sel, aspect_ratio=float(aspect_ratio))

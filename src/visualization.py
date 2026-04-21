@@ -56,6 +56,7 @@ def draw_layer_cross_section(
     a: StackAssembly,
     *,
     max_visible_cells: int = 6,
+    explosion_mm: float = 0.0,
 ) -> go.Figure:
     """
     Seitenansicht des Stacks, maßstabsgetreu in mm.
@@ -64,7 +65,15 @@ def draw_layer_cross_section(
     [BPP, GDL_a, Cat_a, Membran, Cat_c, GDL_c, BPP, Gasket×2], schließlich
     CurrentCollector, EndPlate. Bei N > max_visible_cells werden nur 3
     Zellen oben + 3 unten gezeichnet, Mitte als graue "... X remaining ..."-Box.
+
+    `explosion_mm`: optionaler Luft-Gap zwischen benachbarten Layern in mm.
+    0.0 = zusammengebaut (Default, Querschnitt wie v0.4). > 0.0 = Exploded-
+    View — jeder Layer wird um diesen Betrag nach oben versetzt, zwischen
+    angrenzende Layer werden gestrichelte graue Verbindungslinien gezeichnet.
+    Die tatsächlichen Layer-Dicken bleiben maßstabsgetreu.
     """
+    if explosion_mm < 0:
+        raise ValueError(f"explosion_mm={explosion_mm} must be non-negative")
     mem = a.membrane_spec()
     ag = a.anode_gdl_spec()
     cg = a.cathode_gdl_spec()
@@ -78,12 +87,18 @@ def draw_layer_cross_section(
     fig = go.Figure()
     y_labels: list[str] = []
     y_cursor = 0.0
+    # Track (bottom, top) of every drawn layer (in mm) for exploded-view guides.
+    _spans: list[tuple[float, float]] = []
 
     def add(thickness: float, label: str, kind: str, ref: str):
         nonlocal y_cursor
         y_labels.append(label)
         fig.add_trace(_layer(y_cursor, thickness, label, kind, ref))
-        y_cursor += thickness * 1000.0
+        t_mm = thickness * 1000.0
+        _spans.append((y_cursor, y_cursor + t_mm))
+        y_cursor += t_mm
+        if explosion_mm > 0.0:
+            y_cursor += explosion_mm
 
     add(ep.thickness_m, f"EndPlate ({ep.material})", "end_plate", ep.ref)
     add(
@@ -143,7 +158,10 @@ def draw_layer_cross_section(
                 showlegend=False,
             )
         )
+        _spans.append((y_cursor, y_cursor + add_thickness_mm))
         y_cursor += add_thickness_mm
+        if explosion_mm > 0.0:
+            y_cursor += explosion_mm
         for i in range(n - half + 1, n + 1):
             add_cell(i)
 
@@ -155,8 +173,28 @@ def draw_layer_cross_section(
     )
     add(ep.thickness_m, f"EndPlate ({ep.material})", "end_plate", ep.ref)
 
+    # Exploded-view guide lines: dashed grey connector between the top of
+    # layer i and the bottom of layer i+1. Only drawn when explosion_mm > 0.
+    if explosion_mm > 0.0 and len(_spans) > 1:
+        for (_, top_i), (bot_j, _) in zip(_spans[:-1], _spans[1:], strict=True):
+            fig.add_shape(
+                type="line",
+                xref="paper",
+                x0=0.0,
+                x1=1.0,
+                yref="y",
+                y0=(top_i + bot_j) / 2.0,
+                y1=(top_i + bot_j) / 2.0,
+                line=dict(color="#cbd5e0", width=0.8, dash="dot"),
+                layer="below",
+            )
+
+    title = f"Stack cross-section — {n} cells, active area {a.active_area_m2 * 1e4:.1f} cm²"
+    if explosion_mm > 0.0:
+        title += f"  ·  exploded {explosion_mm:g} mm/layer"
+
     fig.update_layout(
-        title=f"Stack cross-section — {n} cells, active area {a.active_area_m2 * 1e4:.1f} cm²",
+        title=title,
         xaxis_title="Thickness [mm]",
         yaxis=dict(autorange="reversed"),
         barmode="stack",

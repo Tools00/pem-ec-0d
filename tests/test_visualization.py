@@ -30,6 +30,34 @@ def test_cross_section_n200_uses_compressed_view():
     assert any("collapsed" in lbl for lbl in labels)
 
 
+def test_cross_section_exploded_view_grows_extent():
+    """v0.6a: explosion_mm > 0 shifts every layer apart — total figure
+    extent grows, layer count unchanged, one dotted guide per adjacency."""
+    a = StackAssembly(**{**asdict(default_assembly()), "n_cells": 2})
+    fig_flat = draw_layer_cross_section(a, explosion_mm=0.0)
+    fig_exp = draw_layer_cross_section(a, explosion_mm=1.0)
+    # Same number of layer-bars either way (explosion is pure visual offset):
+    assert len(fig_flat.data) == len(fig_exp.data)
+    # Highest bar top in the exploded view is strictly higher than flat:
+    top_flat = max(t.base[0] + t.x[0] for t in fig_flat.data)
+    top_exp = max(t.base[0] + t.x[0] for t in fig_exp.data)
+    assert top_exp > top_flat, "exploded view must increase total y-extent"
+    # Roughly: extent grows by (n_layers - 1) * explosion_mm; for N=2 we
+    # have 2+2 + 2*9 = 22 layers, so at 1mm spread we gain ~21 mm minimum.
+    assert top_exp - top_flat >= 15.0
+    # Dotted guide lines: drawn as "line"-shapes, one per adjacency.
+    dotted = [s for s in fig_exp.layout.shapes if getattr(s, "type", None) == "line"]
+    flat_dotted = [s for s in fig_flat.layout.shapes if getattr(s, "type", None) == "line"]
+    assert len(flat_dotted) == 0, "no guide lines in assembled view"
+    assert len(dotted) >= 15, "should draw a guide line between each adjacency"
+
+
+def test_cross_section_explosion_negative_raises():
+    a = StackAssembly(**{**asdict(default_assembly()), "n_cells": 1})
+    with pytest.raises(ValueError, match="explosion_mm"):
+        draw_layer_cross_section(a, explosion_mm=-0.1)
+
+
 def test_bpp_top_view_all_patterns():
     for name in BIPOLAR_PLATES:
         fig = draw_bpp_top_view(name, 50e-4, "PTFE 250 um")
