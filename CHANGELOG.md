@@ -29,11 +29,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   aspect_ratio ≠ 1.0 zeichnen alle drei Pattern (parallel, serpentine,
   interdigitated) auf rechteckiger Fläche.
 
-### Planned (next, v0.5 Phase 3 + release)
-- Validation gegen Bernt et al. (2020) *Chem. Ing. Tech.* 92(1-2), 31–39, Fig. 1
-  (80 °C, Nafion 212, 2 mg Ir/cm², 0.35 mg Pt/cm²; RMSE-Target 40 mV)
+### Added (v0.5 Phase 3 — Bernt 2020 validation baseline)
+- **Validation-Dataset** `tests/data/bernt_2020_fig1.csv`: 15 Punkte der
+  Polarisationskurve aus Bernt et al. (2020) *Chem. Ing. Tech.* 92(1-2),
+  Fig. 1, rote durchgezogene Linie (2 mg Ir/cm², gemessen) — 80 °C, Nafion
+  212, 1 bar. Digitalisiert per Screenshot-Abfrage, ±20 mV Genauigkeit,
+  Paper Open Access (CC-BY).
+- **Validation-Test** `tests/test_validation_bernt2020.py` mit drei Tests:
+  - Dataset-Sanity (Load, Monotonie, physikalischer Wertebereich) — PASS.
+  - Low-j Shape-Match (j ≤ 0.1 A/cm², RMSE < 50 mV) — PASS bei ~35 mV RMSE.
+    Bestätigt dass Butler-Volmer + Nernst + Ohm die Tafel-Region korrekt
+    abbildet.
+  - Full-range RMSE-Target 40 mV — **strict xfail** bei ~510 mV RMSE.
+    Residual-Wachstum monoton in j: Model überschätzt R_ohm und unterschätzt
+    j₀ für Bernt's Premium-Setup. Keine heimliche Kalibrierung — Rationale
+    dokumentiert.
+- **Neues Doc** `docs/validation/bernt2020_v0.5.md`: Diagnose, warum xfail
+  statt Fit, Plan für v0.6-Preset-System (`IrO2_generic` vs
+  `IrO2_TiO2_Umicore_Elyst_Ir75`).
+
+### Planned (next, v0.5 release)
 - ADR-007 für v0.5-Architektur-Entscheidungen
 - v0.5.0 Release-Commit + README-Update
+
+### Deferred (v0.6)
+- Katalysator-Preset-System: generic vs setup-spezifisch, mit unabhängig
+  extrahierten kinetischen Parametern (nicht aus Fig.-1-Fit).
+- Bernt-Preset + ggf. Stiber 2022 als zweiter Validierungs-Datensatz.
 
 ## [0.4.1] — 2026-04-20
 
