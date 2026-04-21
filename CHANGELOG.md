@@ -72,8 +72,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   510-mV-Bernt-Abweichung durch Zimmer's Literatur-Varianz statistisch
   einordbar.
 
+### Docs (v0.5 Phase 3 — ADR)
+- **ADR-007** `docs/adr/007-v0.5-architecture.md`: Entscheidungs-Record
+  für die drei orthogonalen v0.5-Erweiterungen (Fluid-Modul, rechteckige
+  Stacks, Zero-Fit-Validation mit strict-xfail). ADR-Index aktualisiert.
+
 ### Planned (next, v0.5 release)
-- ADR-007 für v0.5-Architektur-Entscheidungen
 - v0.5.0 Release-Commit + README-Update
 
 ### Deferred (v0.6)
