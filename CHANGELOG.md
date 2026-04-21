@@ -5,6 +5,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-04-21
+
+Phases 1-3 abgeschlossen: Fluid-Modul + Pumpen-Kopplung, rechteckige
+Stacks, Literatur-Validation mit Zero-Fit-Property. Test-Suite wächst
+von 123 auf 161 Tests + 2 strict-xfail (dokumentierte Kalibrierungs-
+Targets für v0.6).
+
+### Added (v0.5 Phase 1 — fluid module + pump coupling)
+- **`src/fluid.py`** — neues Modul mit Hagen-Poiseuille-Druckverlust im
+  laminaren Regime + Darcy-Weisbach-Warnung für turbulente Kanäle
+  (Re > 2000). Pure functions, Assembly-frei testbar.
+- **Stoichiometrische Wasser-Flussberechnung** aus Faraday-Strom × λ,
+  angekoppelt an die Anoden-Kanal-Geometrie aus `BipolarPlateSpec`.
+- **`assembly.assembly_pressure_drop` + `assembly_pump_power_w`** als
+  dünne Komposition über `fluid.*`.
+
 ### Added (v0.5 Phase 2 — rectangular stacks + ΔP in UI)
 - **`aspect_ratio` auf `StackAssembly`** (`src/assembly.py`): dimensionslos,
   default 1.0 (quadratisch = v0.4-Verhalten). `active_dimensions_m(a) → (w, h)`
@@ -77,13 +93,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · SemVer.
   für die drei orthogonalen v0.5-Erweiterungen (Fluid-Modul, rechteckige
   Stacks, Zero-Fit-Validation mit strict-xfail). ADR-Index aktualisiert.
 
-### Planned (next, v0.5 release)
-- v0.5.0 Release-Commit + README-Update
-
 ### Deferred (v0.6)
-- Katalysator-Preset-System: generic vs setup-spezifisch, mit unabhängig
-  extrahierten kinetischen Parametern (nicht aus Fig.-1-Fit).
-- Bernt-Preset + ggf. Stiber 2022 als zweiter Validierungs-Datensatz.
+- Katalysator-Preset-System: `IrO2_generic` vs `IrO2_TiO2_Umicore_Elyst_Ir75`,
+  mit unabhängig extrahierten kinetischen Parametern (nicht aus Fig.-1-Fit).
+- Membran-Preset-Tabelle erweitern (`Nafion 115` + Springer-Leitfähigkeit
+  gegen Zimmer's gefilterten N115-Korpus verifizieren).
+- Kontakt-Resistenz-Preset: `generic_commercial` vs `research_grade`.
+- Flip beider strict-xfail-Tests zu normalen Asserts, sobald Bernt-RMSE
+  < 60 mV und Zimmer innerhalb ±1σ an allen 5 j.
 
 ## [0.4.1] — 2026-04-20
 

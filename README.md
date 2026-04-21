@@ -17,6 +17,47 @@ with one click.
 
 ---
 
+## What's new in v0.5
+
+### Flow-field pressure drop + pump power (Phase 1)
+
+- **`src/fluid.py`** — Hagen-Poiseuille ΔP in laminaren Kanälen +
+  explizite Darcy-Weisbach-Warnung bei Re > 2000 (keine stille
+  Extrapolation).
+- **Anoden-Wasser-Fluss aus Faraday + λ** — stoichiometrische
+  Volumen-Flussrate pro Zelle, N Zellen hydraulisch parallel am Stack-
+  Manifold.
+- **Assembly-Tab: `ΔP [kPa]`, `v [cm/s]`, `Re`, `Pump [W]`, Parasit-Anteil**
+  der Stack-Leistung als Metrics. Pump-Leistung fließt nicht (noch) in
+  den η-Wert, wird aber transparent daneben gezeigt.
+
+### Rectangular stacks (Phase 2)
+
+- Neues Feld `aspect_ratio` (dimensionslos, default 1.0) auf
+  `StackAssembly` — area-preserving: `w·h = active_area_m²`, `w/h = ratio`.
+  v0.4-JSONs laden weiter als quadratisch.
+- BPP-Außenmaße folgen als `(w + 2·frame, h + 2·frame)` — echte
+  rechteckige Plates. Flow-Field-Rendering (alle drei Pattern) richtet
+  sich nach den rechteckigen Dimensionen.
+- Sidebar-Slider 0.25…4.0, Caption zeigt resultierende w × h.
+
+### Literature validation (Phase 3)
+
+Zero-Fit-Property: nur dokumentierte Betriebsbedingungen (T, p, Membran)
+werden als Inputs genutzt — keine kinetischen Parameter auf die
+Test-Kurve gefittet.
+
+| Datensatz | Typ | Status |
+|---|---|---|
+| Bernt 2020 Fig. 1 (2 mg Ir/cm², 80 °C, Nafion 212) | 15 Punkte, ein Setup | Low-j PASS (~35 mV), Full-range strict-xfail @ 510 mV |
+| Zimmer 2026 Fig. 1c (N115 + 80 °C, 127 Paper) | Envelope + ±σ, 5 Benchmark j | **Envelope PASS**, ±1σ strict-xfail (+175 mV bias) |
+
+Beide xfails sind dokumentierte v0.6-Kalibrierungsziele
+(`docs/validation/bernt2020_v0.5.md`, `docs/validation/zimmer2026_v0.5.md`).
+Rationale für die xfail-Strategie: [ADR-007](docs/adr/007-v0.5-architecture.md).
+
+---
+
 ## What's in it (v0.4)
 
 ### Visual Stack Designer (new in v0.4)
@@ -125,7 +166,7 @@ See [docs/INSTALL.md](docs/INSTALL.md) for detailed setup and troubleshooting.
 pytest tests/ -v
 ```
 
-**78 tests passing** in <0.2 s. Covers:
+**161 tests passing + 2 strict-xfail** in ~2 s. Covers:
 
 - **Tafel-slope validation** against analytical `b = 2.303·R·T/(α·F)` (<0.5 % error)
 - **Monotonicity** of polarization curve
@@ -144,11 +185,24 @@ pytest tests/ -v
 - Tafel slope `b = 2.303·R·T/(α·F)` matched to < 0.5 %
 - U_cell at 80 °C, 10 bar, 1 A/cm²: 1.7–2.1 V (Carmo et al. 2013 Fig. 6)
 
-### Planned (v0.5)
+### Literature (v0.5, zero-fit)
 
-- Comparison to published polarization curves (Bernt 2018, García-Valverde 2012)
-- Temperature and pressure sweeps vs. experimental data
-- Error metrics: RMSE, MAPE, max deviation
+- **Bernt 2020, Fig. 1** — Low-j-Shape PASS bei ~35 mV RMSE (j ≤ 0.1 A/cm²,
+  Tafel-Region). Full-range strict-xfail bei 510 mV — R_ohm-Overshoot und
+  generisches j₀,Anode unterschätzen das Umicore-Elyst-Ir75-Premium-Setup.
+  Dokumentiert in [`docs/validation/bernt2020_v0.5.md`](docs/validation/bernt2020_v0.5.md).
+- **Zimmer 2026, Fig. 1c** — aggregierte Literatur, 127 Paper, gefiltert
+  auf Nafion N115 + 80 °C. **Envelope-Test PASS** an allen 5 Benchmark-j
+  (Model bleibt in [E_min, E_max]). ±1σ-Band strict-xfail mit +175 mV
+  Bias. Dokumentiert in [`docs/validation/zimmer2026_v0.5.md`](docs/validation/zimmer2026_v0.5.md).
+- **Warum zwei Papers + xfail statt fit:** Calibrating to Bernt würde die
+  Zero-Fit-Property der Test-Suite brechen und das Model auf ein
+  Premium-Setup coupeln. Zimmer's σ > 500 mV bei gleicher j zeigt, dass
+  kein einzelnes Paper als Wahrheit gilt. Rationale in
+  [ADR-007](docs/adr/007-v0.5-architecture.md).
+- **v0.6-Pfad:** Katalysator-/Kontakt-Resistenz-Preset-System mit
+  unabhängig extrahierten kinetischen Parametern. Strict-xfail zwingt
+  explizites Re-Baseline, wenn die Kalibrierung landet.
 
 ---
 
@@ -163,8 +217,12 @@ pem-ec-designer/
 │   ├── stack.py            N-cell serial aggregation
 │   ├── thermal.py          0D energy balance + coolant sizing
 │   ├── materials.py        Membrane/catalyst/GDL presets with refs
-│   └── streamlit_app.py    Streamlit UI (5 tabs)
-├── tests/                  78 pytest tests
+│   ├── components.py       Stack-component presets (BPP, end plate, ...)
+│   ├── assembly.py         StackAssembly dataclass + ΔP/pump composition
+│   ├── fluid.py            Hagen-Poiseuille / Darcy-Weisbach (v0.5)
+│   ├── visualization.py    Plotly cross-section + BPP top view
+│   └── streamlit_app.py    Streamlit UI (6 tabs)
+├── tests/                  161 pytest tests + 2 strict-xfail (v0.6 targets)
 ├── docs/
 │   ├── HOW-IT-WORKS.md     User-facing guide with screenshots
 │   ├── INSTALL.md          Detailed setup + troubleshooting
@@ -190,8 +248,10 @@ pem-ec-designer/
 |---|---|---|
 | **v0.1** | Cell electrochemistry + Streamlit UI + 1 analytical validation | ✅ Done |
 | **v0.2** | Stack aggregation, 0D thermal, material presets, tabbed UI | ✅ Done |
-| v0.3 | 2D cross-section visualization, Tafel semi-log plot, efficiency map, comparison mode | Planned |
-| v0.5 | 1D membrane (Springer water transport), Numba acceleration, experimental validation against 3 papers, cost estimator, CI/CD | Planned |
+| **v0.3** | Springer-Membran-σ(λ, T), Arrhenius-j₀(T), Full-Butler-Volmer | ✅ Done |
+| **v0.4** | Visual Stack Designer (Assembly-Tab, presets, JSON save/load), r_bpp wired | ✅ Done |
+| **v0.5** | Fluid-Modul (ΔP/pump), rechteckige Stacks, zero-fit Literatur-Validation (Bernt 2020 + Zimmer 2026) | ✅ Done |
+| v0.6 | Katalysator- + Kontakt-Resistenz-Preset-System, xfail-Tests grünschalten | Planned |
 | v1.0 | Pseudo-2D along-channel + through-MEA, surrogate layer from published CFD data, REST API | Planned |
 | v2.0 | 3D exploded-view visualization, parametric CAD for bipolar plates (CadQuery), external OpenFOAM runner | Optional |
 
